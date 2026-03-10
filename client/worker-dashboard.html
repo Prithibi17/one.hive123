@@ -1,0 +1,834 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneHive | Partner Dashboard</title>
+    <!-- Plus Jakarta Sans -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="mobile-nav.css">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-init.js"></script>
+
+    <!-- Multi-Language & Theme Support -->
+    <script src="theme.js"></script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #050b14;
+            --bg-gradient: radial-gradient(circle at 10% 90%, rgba(37, 99, 235, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 90% 10%, rgba(37, 99, 235, 0.05) 0%, transparent 40%);
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --accent: #3B82F6;
+            --accent-hover: #2563EB;
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-glass: rgba(15, 23, 42, 0.7);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-pill: 9999px;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --success: #10B981;
+            --warning: #F59E0B;
+            --error: #EF4444;
+        }
+
+        [data-theme="light"] {
+            --bg-base: #F8FAFC;
+            --bg-gradient: radial-gradient(circle at 10% 90%, rgba(241, 112, 36, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 10%, rgba(241, 112, 36, 0.05) 0%, transparent 40%);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --surface: rgba(255, 255, 255, 0.9);
+            --surface-glass: rgba(255, 255, 255, 0.8);
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --accent: #2563EB;
+            --accent-hover: #1D4ED8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* --- NAV BAR --- */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 40px;
+            background: var(--surface-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+            margin-left: -32px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 8px 20px;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        /* --- DASHBOARD LAYOUT --- */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 32px;
+        }
+
+        /* --- PROFILE CARD --- */
+        .profile-card {
+            background: var(--surface-glass);
+            backdrop-filter: blur(24px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 40px 32px;
+            text-align: center;
+            position: sticky;
+            top: 40px;
+            height: fit-content;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 24px;
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-subtle);
+            background: var(--surface);
+        }
+
+        .status-badge {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 3px solid var(--bg-base);
+            background: var(--success);
+        }
+
+        .status-badge.offline {
+            background: var(--text-secondary);
+        }
+
+        .profile-info h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .profile-info p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 12px;
+        }
+
+        .expertise-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            border-radius: var(--radius-pill);
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        /* --- DASHBOARD CONTENT --- */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .stat-card {
+            background: var(--surface-glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+        }
+
+        .stat-info h4 {
+            font-size: 13px;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .stat-info span {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Section Card */
+        .section-card {
+            background: var(--surface-glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header h3 i {
+            color: var(--accent);
+        }
+
+        /* Order Item */
+        .job-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            transition: 0.3s;
+        }
+
+        .job-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .job-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .job-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+        }
+
+        .job-details h4 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .job-details span {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .job-status {
+            padding: 6px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .status-active {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+        }
+
+        .btn-action {
+            padding: 8px 16px;
+            border-radius: 10px;
+            border: none;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Toggle Switch */
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-subtle);
+            justify-content: center;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(255, 255, 255, 0.1);
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: var(--success);
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(24px);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 0;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        @media (max-width: 992px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+
+            .profile-card {
+                position: static;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav .nav-right {
+                display: none !important;
+            }
+
+            .bottom-nav-bar {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background: var(--surface-glass);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-top: 1px solid var(--border-subtle);
+                z-index: 1000;
+                justify-content: space-around;
+                align-items: center;
+                padding: 12px 0;
+                padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+            }
+
+            .bottom-nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                color: var(--text-secondary);
+                text-decoration: none;
+                font-size: 11px;
+                font-weight: 600;
+                transition: 0.3s;
+                min-width: 64px;
+            }
+
+            .bottom-nav-item i {
+                font-size: 20px;
+                margin-bottom: 2px;
+            }
+
+            .bottom-nav-item.active,
+            .bottom-nav-item:active {
+                color: var(--accent);
+            }
+
+            .dashboard-container {
+                padding-bottom: 100px !important;
+            }
+
+            .job-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .job-item>div:last-child {
+                width: 100%;
+                justify-content: space-between;
+                flex-direction: row-reverse;
+            }
+
+            button,
+            input,
+            select,
+            textarea,
+            .btn-action {
+                min-height: 48px;
+                font-size: 16px !important;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .job-status {
+                min-height: 48px;
+                display: flex;
+                align-items: center;
+            }
+
+            .job-item button {
+                flex: 1;
+            }
+        }
+
+        .bottom-nav-bar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <a href="index.html" class="nav-logo">
+            <img src="One_Hive.png" alt="OneHive"
+                style="height: 120px; width: auto; filter: drop-shadow(0px 0px 12px rgba(255,255,255,0.15));">
+        </a>
+        <div class="nav-right">
+            <div class="theme-toggle" onclick="window.toggleTheme()"
+                style="cursor:pointer; color:var(--text-secondary); font-size:20px;">
+                <i class="fas fa-sun theme-sun"></i>
+                <i class="fas fa-moon theme-moon"></i>
+            </div>
+            <button class="btn-logout" onclick="logout()">
+                <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
+            </button>
+        </div>
+    </nav>
+
+    <div class="dashboard-container">
+        <div class="welcome-box" style="margin-bottom: 40px;">
+            <h1 style="font-size:32px; font-weight:700;">Partner Dashboard</h1>
+            <p style="color:var(--text-secondary); font-size:14px; margin-top:4px;">Manage your services and track your
+                performance.</p>
+        </div>
+
+        <div class="grid">
+            <!-- PROFILE SIDEBAR -->
+            <aside class="profile-card">
+                <div class="avatar-container">
+                    <img id="avatarDisplay" src="https://ui-avatars.com/api/?name=Partner&background=3B82F6&color=fff"
+                        class="avatar-img" alt="Partner Avatar">
+                    <div id="statusIndicator" class="status-badge"></div>
+                </div>
+
+                <div class="profile-info">
+                    <h2 id="partnerName">Partner Name</h2>
+                    <p id="partnerEmail">partner@example.com</p>
+                    <div id="partnerExpertise" class="expertise-tag">Expertise</div>
+                </div>
+
+                <div class="stats-min"
+                    style="display:flex; justify-content:center; gap:24px; padding-top:24px; border-top: 1px solid var(--border-subtle);">
+                    <div class="stat-item">
+                        <span
+                            style="display:block; font-size:11px; text-transform:uppercase; color:var(--text-secondary); font-weight:600;">Rating</span>
+                        <strong id="partnerRating" style="font-size:18px;">4.8</strong>
+                    </div>
+                    <div class="stat-item">
+                        <span
+                            style="display:block; font-size:11px; text-transform:uppercase; color:var(--text-secondary); font-weight:600;">Jobs</span>
+                        <strong id="jobsCount" style="font-size:18px;">0</strong>
+                    </div>
+                </div>
+
+                <div class="toggle-container">
+                    <span style="font-size: 14px; font-weight: 600;">Online Status</span>
+                    <label class="switch">
+                        <input type="checkbox" id="statusToggle" checked onchange="toggleOnlineStatus(this)">
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT -->
+            <main class="main-content">
+                <!-- STATS GRID -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-briefcase"></i></div>
+                        <div class="stat-info">
+                            <h4>Total Jobs</h4>
+                            <span id="totalJobsStat">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                        <div class="stat-info">
+                            <h4>Active Jobs</h4>
+                            <span id="activeJobsStat">0</span>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon"><i class="fas fa-wallet"></i></div>
+                        <div class="stat-info">
+                            <h4>Total Earnings</h4>
+                            <span id="earningsStat">₹0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ASSIGNED JOBS -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h3><i class="fas fa-clipboard-list"></i> Assigned Jobs</h3>
+                        <button onclick="initDashboard()"
+                            style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:13px;">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="jobsList">
+                        <!-- Jobs will be loaded here -->
+                        <div class="empty-state">
+                            <i class="fas fa-tasks"></i>
+                            <p>No jobs assigned to you yet.</p>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        const SB = window.supabaseClient;
+
+        // Redirect if not logged in
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = "login.html";
+        }
+
+        async function initDashboard() {
+            const email = localStorage.getItem('currentUserEmail');
+            if (!email) return;
+
+            // 1. Fetch Partner Data
+            const { data: partner, error } = await SB
+                .from('workers')
+                .select('*')
+                .eq('email', email)
+                .single();
+
+            if (partner) {
+                document.getElementById('partnerName').innerText = partner.name;
+                document.getElementById('partnerEmail').innerText = partner.email;
+                document.getElementById('partnerExpertise').innerText = partner.expertise;
+                document.getElementById('partnerRating').innerText = partner.rating || 'N/A';
+
+                if (partner.avatar_url) {
+                    document.getElementById('avatarDisplay').src = partner.avatar_url;
+                }
+
+                // Set status toggle
+                const statusToggle = document.getElementById('statusToggle');
+                const statusIndicator = document.getElementById('statusIndicator');
+                statusToggle.checked = partner.status === 'online';
+                if (partner.status === 'online') {
+                    statusIndicator.classList.remove('offline');
+                } else {
+                    statusIndicator.classList.add('offline');
+                }
+
+                // 2. Fetch Jobs
+                await loadJobs(partner.id, partner.expertise);
+            }
+        }
+
+        async function loadJobs(partnerId, expertise) {
+            // For now, we fetch orders that match the partner's expertise or are assigned to them
+            // In a real app, you'd have an assignments table.
+            const { data: jobs, error } = await SB
+                .from('orders')
+                .select('*')
+                .or(`service_name.ilike.%${expertise}%,partner_id.eq.${partnerId}`)
+                .order('created_at', { ascending: false });
+
+            const list = document.getElementById('jobsList');
+            if (jobs && jobs.length > 0) {
+                document.getElementById('jobsCount').innerText = jobs.length;
+                document.getElementById('totalJobsStat').innerText = jobs.length;
+
+                const activeJobs = jobs.filter(j => j.status === 'active' || j.status === 'pending').length;
+                document.getElementById('activeJobsStat').innerText = activeJobs;
+
+                list.innerHTML = jobs.map(j => {
+                    const statusClass = `status-${j.status}`;
+                    return `
+                        <div class="job-item">
+                            <div class="job-meta">
+                                <div class="job-icon"><i class="fas ${getIcon(j.service_name)}"></i></div>
+                                <div class="job-details">
+                                    <h4>${j.service_name}</h4>
+                                    <span>Client: ${j.user_email} | ${new Date(j.created_at).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                <div class="job-status ${statusClass}">${j.status}</div>
+                                ${j.status === 'pending' ? `<button class="btn-action btn-primary" onclick="updateJobStatus('${j.id}', 'active')">Accept</button>` : ''}
+                                ${j.status === 'active' ? `<button class="btn-action btn-primary" onclick="updateJobStatus('${j.id}', 'completed')">Complete</button>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+        }
+
+        async function updateJobStatus(jobId, newStatus) {
+            const { error } = await SB
+                .from('orders')
+                .update({ status: newStatus })
+                .eq('id', jobId);
+
+            if (!error) {
+                alert(`Job marked as ${newStatus}!`);
+                initDashboard();
+            } else {
+                alert("Error updating job: " + error.message);
+            }
+        }
+
+        async function toggleOnlineStatus(checkbox) {
+            const email = localStorage.getItem('currentUserEmail');
+            const newStatus = checkbox.checked ? 'online' : 'offline';
+            const statusIndicator = document.getElementById('statusIndicator');
+
+            const { error } = await SB
+                .from('workers')
+                .update({ status: newStatus })
+                .eq('email', email);
+
+            if (!error) {
+                if (checkbox.checked) {
+                    statusIndicator.classList.remove('offline');
+                } else {
+                    statusIndicator.classList.add('offline');
+                }
+            } else {
+                alert("Error updating status: " + error.message);
+                checkbox.checked = !checkbox.checked; // Reset
+            }
+        }
+
+        function getIcon(service) {
+            const s = service.toLowerCase();
+            if (s.includes('ac')) return 'fa-snowflake';
+            if (s.includes('elect')) return 'fa-bolt';
+            if (s.includes('plum')) return 'fa-faucet';
+            if (s.includes('clean')) return 'fa-broom';
+            return 'fa-tools';
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "login.html";
+        }
+
+        initDashboard();
+    </script>
+    <!-- App-Style Bottom Tab Navigation -->
+    <div class="bottom-nav-bar">
+        <a href="#" class="bottom-nav-item active" onclick="window.scrollTo(0,0)">
+            <i class="fas fa-home"></i>
+            <span>Dashboard</span>
+        </a>
+        <a href="#jobsList" class="bottom-nav-item">
+            <i class="fas fa-clipboard-list"></i>
+            <span>Jobs</span>
+        </a>
+        <a href="#" class="bottom-nav-item"
+            onclick="toggleOnlineStatus(document.getElementById('statusToggle')); document.getElementById('statusToggle').checked = !document.getElementById('statusToggle').checked;">
+            <i class="fas fa-power-off"></i>
+            <span>Status</span>
+        </a>
+        <a href="javascript:void(0)" class="bottom-nav-item" onclick="logout()">
+            <i class="fas fa-sign-out-alt"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <a href="index.html" class="mbn-item" title="Home">
+            <i class="fas fa-house"></i>
+            <span class="mbn-label">Home</span>
+        </a>
+        <a href="service.html" class="mbn-item" title="Services">
+            <i class="fas fa-screwdriver-wrench"></i>
+            <span class="mbn-label">Services</span>
+        </a>
+        <a href="service.html" class="mbn-item mbn-center" title="Book Now">
+            <div class="mbn-center-bg"><i class="fas fa-calendar-check"></i></div>
+        </a>
+        <a href="track.html" class="mbn-item" title="Track">
+            <i class="fas fa-truck-fast"></i>
+            <span class="mbn-label">Track</span>
+        </a>
+        <a href="worker-dashboard.html" class="mbn-item active" title="Dashboard">
+            <i class="fas fa-circle-user"></i>
+            <span class="mbn-label">Dashboard</span>
+        </a>
+    </nav>
+
+</body>
+
+</html>

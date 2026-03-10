@@ -1,0 +1,408 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneHive | System Login</title>
+    <!-- Plus Jakarta Sans for premium SaaS typography -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="mobile-nav.css">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-init.js"></script>
+
+    <!-- Multi-Language Support -->
+    <!-- Theme Support -->
+    <script src="theme.js"></script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #050b14;
+            --bg-gradient: radial-gradient(circle at 10% 90%, rgba(37, 99, 235, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 90% 10%, rgba(37, 99, 235, 0.05) 0%, transparent 40%);
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --accent: #3B82F6;
+            --accent-hover: #2563EB;
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-glass: rgba(15, 23, 42, 0.7);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(59, 130, 246, 0.5);
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-pill: 9999px;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        [data-theme="light"] {
+            --bg-base: #F8FAFC;
+            --bg-gradient: radial-gradient(circle at 10% 90%, rgba(241, 112, 36, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 10%, rgba(241, 112, 36, 0.05) 0%, transparent 40%);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --surface: rgba(255, 255, 255, 0.9);
+            --surface-glass: rgba(255, 255, 255, 0.8);
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --accent: #2563EB;
+            --accent-hover: #1D4ED8;
+        }
+
+        /* --- MODERN GLOBAL SCROLLBAR --- */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-base);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--accent), var(--accent-hover));
+            border-radius: 10px;
+            border: 2px solid var(--bg-base);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            position: relative;
+        }
+
+        /* Ambient floating shapes */
+        .ambient-shape-1 {
+            position: absolute;
+            top: -10%;
+            right: -5%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .ambient-shape-2 {
+            position: absolute;
+            bottom: -10%;
+            left: -5%;
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .box {
+            background: var(--surface-glass);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            padding: 56px 48px;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 440px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-subtle);
+            position: relative;
+            z-index: 10;
+        }
+
+        h2 {
+            color: var(--text-primary);
+            margin-bottom: 40px;
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        h2 i {
+            color: var(--accent);
+            font-style: normal;
+            font-weight: 300;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            margin-bottom: 20px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.02);
+            transition: all 0.3s ease;
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input::placeholder {
+            color: #6B7280;
+            font-weight: 400;
+        }
+
+        input:focus {
+            border-color: var(--border-active);
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        button {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-pill);
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            margin-top: 16px;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+        }
+
+        button:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        p {
+            font-size: 14px;
+            margin-top: 32px;
+            color: var(--text-secondary);
+        }
+
+        a {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        a:hover {
+            color: var(--accent);
+        }
+
+        .home-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 32px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            text-decoration: none;
+            border: 1px solid var(--border-subtle);
+            padding: 8px 16px;
+            border-radius: var(--radius-pill);
+            transition: 0.3s;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .home-link:hover {
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 1199px) {
+            .box {
+                padding: 60px 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+
+            .box {
+                padding: 40px 24px;
+                border-radius: 20px;
+                width: 100%;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+
+            /* Native App Touch Targets */
+            input,
+            button {
+                min-height: 48px;
+                font-size: 16px !important;
+            }
+        }
+    </style>
+    <!-- Custom i18n Styles -->
+    <style>
+        .lang-switcher-login {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            z-index: 100;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ambient-shape-1"></div>
+    <div class="ambient-shape-2"></div>
+
+    <div class="lang-switcher-login" style="display: flex; gap: 8px;">
+        <div class="home-link" onclick="window.toggleTheme()" style="cursor: pointer;">
+            <i class="fas fa-sun theme-sun"></i>
+            <i class="fas fa-moon theme-moon"></i>
+        </div>
+        <div class="home-link" onclick="window.toggleLanguage()" style="cursor: pointer;">
+            <i class="fas fa-language"></i> <span id="langSwitcherTrigger">EN</span>
+        </div>
+    </div>
+
+    <div class="box">
+        <h2><i data-i18n="login-title-i">User</i><span data-i18n="login-title-tail"> Login</span></h2>
+        <input type="email" id="loginEmail" placeholder="Email Address" data-i18n="email-placeholder">
+        <input type="password" id="loginPass" placeholder="Password" data-i18n="password-placeholder">
+
+        <button onclick="loginUser()" data-i18n="login-btn">Login</button>
+
+        <p><span data-i18n="new-user">New user? </span><a href="register.html" data-i18n="create-account">Create
+                Account</a></p>
+        <p style="margin-top: 12px;"><a href="forgot-password.html"
+                style="color: var(--text-secondary); font-weight: 500; font-size: 14px; transition: color 0.3s;"
+                onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--text-secondary)'"
+                data-i18n="forgot-password">Forgot Password?</a></p>
+        <a href="index.html" class="home-link"><i class="fas fa-arrow-left"></i> <span data-i18n="go-back">Go
+                Back</span></a>
+    </div>
+
+    <!-- Logic completely preserved -->
+    <script>
+        async function loginUser() {
+            let email = document.getElementById('loginEmail').value.trim().toLowerCase();
+            let password = document.getElementById('loginPass').value.trim();
+
+            if (!email || !password) { alert("Please enter email and password."); return; }
+
+            // 1. Try to login as a regular User first
+            const { data: user, error: userError } = await window.supabaseClient
+                .from('users')
+                .select('*')
+                .eq('email', email)
+                .eq('password', password)
+                .single();
+
+            if (user) {
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userRole', 'user');
+                localStorage.setItem('userName', user.name);
+                localStorage.setItem('currentUserEmail', user.email);
+                const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3B82F6&color=fff`;
+                localStorage.setItem('currentUserAvatar', user.avatar_url || fallbackAvatar);
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const returnUrl = urlParams.get('returnUrl');
+
+                alert("Login successful! Welcome back, " + user.name);
+
+                if (returnUrl) {
+                    window.location.href = decodeURIComponent(returnUrl);
+                } else {
+                    window.location.href = "user-dashboard.html";
+                }
+                return;
+            }
+
+            // 2. If not a User, try to login as a Worker/Partner
+            const { data: worker, error: workerError } = await window.supabaseClient
+                .from('workers')
+                .select('*')
+                .eq('email', email)
+                .eq('password', password)
+                .single();
+
+            if (worker) {
+                localStorage.setItem('isLoggedIn', 'true');
+                localStorage.setItem('userRole', 'worker');
+                localStorage.setItem('userName', worker.name);
+                localStorage.setItem('currentUserEmail', worker.email);
+                const fallbackAvatar = `https://ui-avatars.com/api/?name=${encodeURIComponent(worker.name)}&background=3B82F6&color=fff`;
+                localStorage.setItem('currentUserAvatar', worker.avatar_url || fallbackAvatar);
+
+                alert("Login successful! Welcome to the Partner Dashboard, " + worker.name);
+                window.location.href = "worker-dashboard.html";
+                return;
+            }
+
+            // 3. Handle errors if both fail
+            if (userError && workerError) {
+                alert("Wrong email or password, or account doesn't exist.");
+            } else {
+                alert("Login error occurred. Please try again.");
+            }
+        }
+    </script>
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <a href="index.html" class="mbn-item" title="Home">
+            <i class="fas fa-house"></i>
+            <span class="mbn-label">Home</span>
+        </a>
+        <a href="service.html" class="mbn-item" title="Services">
+            <i class="fas fa-screwdriver-wrench"></i>
+            <span class="mbn-label">Services</span>
+        </a>
+        <a href="service.html" class="mbn-item mbn-center" title="Book Now">
+            <div class="mbn-center-bg"><i class="fas fa-calendar-check"></i></div>
+        </a>
+        <a href="track.html" class="mbn-item" title="Track">
+            <i class="fas fa-truck-fast"></i>
+            <span class="mbn-label">Track</span>
+        </a>
+        <a href="login.html" class="mbn-item active" title="Account">
+            <i class="fas fa-circle-user"></i>
+            <span class="mbn-label">Account</span>
+        </a>
+    </nav>
+
+</body>
+
+</html>

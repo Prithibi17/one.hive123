@@ -1,0 +1,1418 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneHive | Track Status</title>
+
+    <!-- Plus Jakarta Sans -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="mobile-nav.css">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-init.js"></script>
+
+    <!-- Multi-Language & Theme Support -->
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+    <script src="theme.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #050b14;
+            --bg-gradient: radial-gradient(circle at 50% 10%, rgba(37, 99, 235, 0.15) 0%, transparent 60%);
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --accent: #3B82F6;
+            --accent-hover: #2563EB;
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-glass: rgba(15, 23, 42, 0.7);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(59, 130, 246, 0.5);
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-pill: 9999px;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --success: #10B981;
+            --process: #F59E0B;
+            --pending: rgba(255, 255, 255, 0.1);
+        }
+
+        [data-theme="light"] {
+            --bg-base: #F8FAFC;
+            --bg-gradient: radial-gradient(circle at 50% 10%, rgba(241, 112, 36, 0.08) 0%, transparent 60%);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --surface: rgba(255, 255, 255, 0.9);
+            --surface-glass: rgba(255, 255, 255, 0.8);
+            --border-subtle: rgba(0, 0, 0, 0.06);
+            --accent: #2563EB;
+            --accent-hover: #1D4ED8;
+            --pending: rgba(0, 0, 0, 0.05);
+        }
+
+        /* --- MODERN GLOBAL SCROLLBAR --- */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-base);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--accent), var(--accent-hover));
+            border-radius: 10px;
+            border: 2px solid var(--bg-base);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 40px;
+            max-width: 1440px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-center-pill {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-pill);
+            padding: 6px 6px;
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-center-pill a {
+            color: var(--text-secondary);
+            font-size: 13px;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: var(--radius-pill);
+            transition: 0.3s;
+        }
+
+        .nav-center-pill a:hover,
+        .nav-center-pill a.active {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        .login-link {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .login-link:hover {
+            color: var(--text-secondary);
+        }
+
+        .cta-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--border-subtle);
+            padding: 8px 16px 8px 20px;
+            border-radius: var(--radius-pill);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .cta-btn-icon {
+            font-size: 10px;
+            background: var(--text-primary);
+            color: var(--bg-base);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+
+        .cta-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+        }
+
+        .location-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 0 16px;
+            border-right: 1px solid var(--border-subtle);
+        }
+
+        .location-wrapper i {
+            color: var(--accent);
+        }
+
+        .nav-location-select {
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .nav-location-trigger {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-location-trigger::after {
+            content: '\f078';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-left: 4px;
+            transition: 0.3s;
+        }
+
+        .nav-location-select.open .nav-location-trigger::after {
+            transform: rotate(180deg);
+        }
+
+        .nav-location-options {
+            position: absolute;
+            top: calc(100% + 12px);
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            background: var(--surface-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 6px;
+            list-style: none;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            min-width: 120px;
+        }
+
+        .nav-location-select.open .nav-location-options {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .nav-location-option {
+            padding: 8px 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-radius: 8px;
+            white-space: nowrap;
+            transition: 0.2s;
+            text-align: left;
+        }
+
+        .nav-location-option:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--text-primary);
+        }
+
+        #citySelector {
+            display: none;
+        }
+
+        .detect-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 4px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .detect-btn.loading {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: wait;
+        }
+
+        .detect-btn:hover {
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .nav-logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: white;
+            padding: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .nav-logo-icon img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 4px;
+        }
+
+        .back-btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-pill);
+            color: var(--text-secondary);
+            font-weight: 600;
+            font-size: 13px;
+            text-decoration: none;
+            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.02);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-btn:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 64px auto 100px;
+            padding: 0 24px;
+        }
+
+        .track-card {
+            background: var(--surface);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            padding: 64px 48px;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+            text-align: center;
+            margin-bottom: 48px;
+            border: 1px solid var(--border-subtle);
+        }
+
+        .track-card h2 {
+            font-size: 36px;
+            color: var(--text-primary);
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .track-card p {
+            color: var(--text-secondary);
+            margin-bottom: 40px;
+            font-size: 15px;
+        }
+
+        .input-group {
+            display: flex;
+            gap: 16px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .input-box {
+            flex: 1;
+            padding: 18px 24px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-pill);
+            font-size: 15px;
+            outline: none;
+            transition: 0.3s;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-primary);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .input-box::placeholder {
+            color: #4B5563;
+        }
+
+        .input-box:focus {
+            border-color: var(--border-active);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .btn-track {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 0 40px;
+            border-radius: var(--radius-pill);
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+            white-space: nowrap;
+        }
+
+        .btn-track:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 35px rgba(59, 130, 246, 0.4);
+        }
+
+        #errorMsg {
+            color: var(--danger, #EF4444);
+            font-size: 13px;
+            margin-top: 20px;
+            display: none;
+            font-weight: 500;
+        }
+
+        #resultSection {
+            display: none;
+            animation: slideUp 0.5s cubic-bezier(0.175, 0.885, 0.32, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-card {
+            background: var(--surface);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            padding: 40px;
+            border-radius: var(--radius-lg);
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 32px;
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border-subtle);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .profile-card::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--accent);
+        }
+
+        .profile-icon {
+            width: 80px;
+            height: 80px;
+            background: rgba(37, 99, 235, 0.1);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            color: var(--accent);
+            border: 1px solid rgba(37, 99, 235, 0.2);
+        }
+
+        .profile-details h3 {
+            color: var(--text-primary);
+            font-size: 24px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+        }
+
+        .profile-details p {
+            margin: 6px 0;
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .profile-details strong {
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        .timeline-box {
+            background: var(--surface);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            padding: 56px 48px;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 40px 80px rgba(0, 0, 0, 0.6);
+            border: 1px solid var(--border-subtle);
+        }
+
+        .timeline-header {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 48px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .timeline {
+            position: relative;
+            padding-left: 20px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 45px;
+            top: 10px;
+            bottom: 50px;
+            width: 2px;
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 0;
+        }
+
+        .step {
+            position: relative;
+            margin-bottom: 48px;
+            display: flex;
+            align-items: flex-start;
+            z-index: 1;
+        }
+
+        .step:last-child {
+            margin-bottom: 0;
+        }
+
+        .step-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-right: 24px;
+            border: 4px solid var(--bg-base);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            flex-shrink: 0;
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            transition: 0.3s;
+        }
+
+        .step-content {
+            flex: 1;
+            padding-top: 6px;
+        }
+
+        .step-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 6px;
+        }
+
+        .step-desc {
+            font-size: 14px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
+
+        .step.completed .step-icon {
+            background: var(--accent);
+            color: white;
+            border-color: rgba(59, 130, 246, 0.2);
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .step.active .step-icon {
+            background: var(--bg-base);
+            border: 3px solid var(--accent);
+            color: var(--accent);
+            animation: pulse-blue 2s infinite;
+        }
+
+        .step.active .step-title {
+            color: var(--accent);
+        }
+
+        .step.active .step-desc {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .step.pending .step-icon {
+            background: rgba(255, 255, 255, 0.02);
+            color: rgba(255, 255, 255, 0.2);
+            border-color: transparent;
+            box-shadow: none;
+        }
+
+        .step.pending .step-title {
+            color: #4B5563;
+        }
+
+        .step.pending .step-desc {
+            color: rgba(255, 255, 255, 0.15);
+        }
+
+        @keyframes pulse-blue {
+            0% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+            }
+        }
+
+        .slot-card {
+            background: rgba(59, 130, 246, 0.05);
+            border: 1px dashed var(--border-active);
+            padding: 24px;
+            border-radius: var(--radius-md);
+            margin-top: 16px;
+            display: none;
+        }
+
+        .slot-title {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .slot-time {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+            letter-spacing: -0.02em;
+        }
+
+        .reschedule-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border-subtle);
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+            padding: 12px 20px;
+            border-radius: var(--radius-pill);
+            transition: 0.3s;
+        }
+
+        .reschedule-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .hamburger,
+        .mobile-menu {
+            display: none;
+        }
+
+        @media (max-width: 1199px) {
+            nav {
+                padding: 12px 24px;
+                background: var(--surface-glass);
+                backdrop-filter: blur(12px);
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                border-bottom: 1px solid var(--border-subtle);
+            }
+
+            .nav-center-pill {
+                display: none;
+            }
+
+            .nav-right {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                cursor: pointer;
+                z-index: 1001;
+                padding: 10px;
+                border: 1px solid var(--border-subtle);
+                border-radius: 12px;
+                background: var(--surface-glass);
+            }
+
+            .hamburger span {
+                display: block;
+                width: 24px;
+                height: 2px;
+                background: var(--text-primary);
+                transition: 0.3s;
+                border-radius: 2px;
+            }
+
+            .hamburger.active span:nth-child(1) {
+                transform: rotate(45deg) translate(6px, 6px);
+            }
+
+            .hamburger.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger.active span:nth-child(3) {
+                transform: rotate(-45deg) translate(5px, -5px);
+            }
+
+            /* Mobile Menu Overlay */
+            .mobile-menu {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 100%;
+                height: 100vh;
+                background: var(--bg-base);
+                backdrop-filter: blur(20px);
+                z-index: 1000;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 24px;
+                transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                padding: 40px;
+            }
+
+            .mobile-menu.active {
+                right: 0;
+            }
+
+            .mobile-menu a {
+                font-size: 24px;
+                font-weight: 700;
+                color: var(--text-primary);
+                text-decoration: none;
+                transition: 0.3s;
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            .mobile-menu.active a {
+                opacity: 1;
+                transform: translateY(0);
+                transition-delay: 0.2s;
+            }
+
+            .mobile-menu .menu-toggles {
+                display: flex;
+                gap: 20px;
+                margin-top: 20px;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: 0.3s;
+            }
+
+            .mobile-menu.active .menu-toggles {
+                opacity: 1;
+                transform: translateY(0);
+                transition-delay: 0.5s;
+            }
+
+            .menu-toggle-btn {
+                width: 56px;
+                height: 56px;
+                border-radius: 16px;
+                background: var(--surface);
+                border: 1px solid var(--border-subtle);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-primary);
+                font-size: 20px;
+                cursor: pointer;
+            }
+
+            .container {
+                margin-top: 100px;
+            }
+        }
+
+        .mobile-drawer,
+        .mobile-drawer-overlay {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-top: 72px;
+            }
+
+            nav {
+                padding: 12px 20px;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+
+            .nav-center-pill {
+                display: none;
+            }
+
+            .nav-logo {
+                margin-left: -16px !important;
+            }
+
+            .nav-logo img {
+                height: 80px !important;
+            }
+
+            .nav-right {
+                gap: 12px;
+            }
+
+            .location-wrapper {
+                display: none;
+            }
+
+            .container {
+                padding: 20px 16px;
+            }
+
+            .track-card {
+                padding: 40px 20px;
+                border-radius: 16px;
+                margin-top: 32px;
+            }
+
+            .track-card h2 {
+                font-size: 24px;
+            }
+
+            .input-group {
+                flex-direction: column;
+                gap: 12px;
+                background: transparent;
+                border: none;
+                padding: 0;
+            }
+
+            .input-group input {
+                border-radius: 12px !important;
+                border: 1px solid var(--border-subtle) !important;
+                padding: 16px !important;
+                width: 100% !important;
+            }
+
+            .btn-track {
+                width: 100%;
+                border-radius: 12px !important;
+                padding: 16px;
+            }
+
+            .profile-card {
+                flex-direction: column;
+                text-align: center;
+                gap: 20px;
+                padding: 32px 20px;
+            }
+
+            .profile-card::before {
+                width: 100%;
+                height: 4px;
+                bottom: auto;
+                top: 0;
+            }
+
+            .profile-info {
+                align-items: center;
+                text-align: center;
+            }
+
+            .timeline-box {
+                padding: 32px 20px;
+                border-radius: 16px;
+            }
+
+            .timeline-header {
+                font-size: 18px;
+                margin-bottom: 32px;
+            }
+
+            .step-icon {
+                margin-right: 16px;
+                width: 44px;
+                height: 44px;
+                font-size: 16px;
+            }
+
+            .timeline::before {
+                left: 41px;
+            }
+
+            /* Native App Responsive Framework */
+            button,
+            input,
+            select {
+                min-height: 48px;
+                font-size: 16px !important;
+            }
+
+            /* App-Style Drawer Menu */
+            .mobile-drawer {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 80%;
+                max-width: 320px;
+                height: 100vh;
+                background: var(--bg-base);
+                z-index: 9999;
+                transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                display: flex;
+                flex-direction: column;
+                box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+                text-align: left;
+            }
+
+            .mobile-drawer.open {
+                right: 0;
+            }
+
+            .mobile-drawer-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.6);
+                z-index: 9998;
+                opacity: 0;
+                pointer-events: none;
+                transition: 0.3s;
+                display: block;
+            }
+
+            .mobile-drawer-overlay.show {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .drawer-link {
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--text-primary);
+                text-decoration: none;
+                padding: 12px 0;
+                border-bottom: 1px solid var(--border-subtle);
+                display: block;
+            }
+
+            .drawer-link:active {
+                opacity: 0.7;
+            }
+        }
+
+        /* Language Switcher Nav Style */
+        .nav-lang-switcher {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 8px 16px;
+            border-radius: var(--radius-pill);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-decoration: none;
+            height: 36px;
+        }
+
+        .nav-lang-switcher:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-logo" style="gap: 0; margin-left: -32px;">
+            <img src="One_Hive.png" alt="OneHive"
+                style="height: 120px; width: auto; filter: drop-shadow(0px 0px 12px rgba(255, 255, 255, 0.15));"
+                onerror="this.style.display='none'">
+        </a>
+
+        <div class="nav-center-pill">
+            <div class="location-wrapper">
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="nav-location-select" id="navLocSelect" onclick="toggleNavLocation()">
+                    <span class="nav-location-trigger" id="cityDisplay" data-i18n="nav-location">Location</span>
+                    <ul class="nav-location-options">
+                        <li class="nav-location-option" onclick="selectNavCity('Agra')">Agra</li>
+                        <li class="nav-location-option" onclick="selectNavCity('Delhi')">Delhi</li>
+                        <li class="nav-location-option" onclick="selectNavCity('Jaipur')">Jaipur</li>
+                        <li class="nav-location-option" onclick="selectNavCity('Mumbai')">Mumbai</li>
+                    </ul>
+                </div>
+                <select id="citySelector" onchange="changeCityManual()">
+                    <option value="Agra">Agra</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Jaipur">Jaipur</option>
+                    <option value="Mumbai">Mumbai</option>
+                </select>
+                <button class="detect-btn" id="navLocBtn" onclick="detectNavLocation()">
+                    <i class="fas fa-location-arrow" id="navLocIcon"></i>
+                    <span data-i18n="nav-detect">Detect</span>
+                </button>
+            </div>
+            <a href="service.html" data-i18n="nav-services">Services</a>
+            <a href="track.html" class="active" data-i18n="nav-track">Track Order</a>
+            <a href="worker-register.html" data-i18n="nav-partner">Become a Partner</a>
+        </div>
+
+        <div class="nav-right" id="navAuth">
+            <!-- Language Switcher & Theme Toggle -->
+            <div class="location-wrapper" style="border-right: none; padding-right: 0; gap: 4px;">
+                <div class="nav-location-select" onclick="window.toggleTheme()" style="padding: 0 12px;">
+                    <i class="fas fa-sun theme-sun"></i>
+                    <i class="fas fa-moon theme-moon"></i>
+                </div>
+                <i class="fas fa-language" style="font-size: 18px; margin-left: 8px;"></i>
+                <div class="nav-location-select" onclick="window.toggleLanguage()">
+                    <span class="nav-location-trigger" id="langSwitcherTrigger">EN</span>
+                </div>
+            </div>
+
+
+            <a href="javascript:void(0)" onclick="checkAuth('service.html')" class="cta-btn"
+                data-i18n="nav-get-started">Get started <i class="fas fa-arrow-right cta-btn-icon"></i></a>
+        </div>
+
+        <div class="hamburger" id="hamburgerMenu" onclick="toggleDrawer()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- Native App Mobile Drawer -->
+    <div class="mobile-drawer-overlay" id="mobileDrawerOverlay" onclick="toggleDrawer()"></div>
+    <div class="mobile-drawer" id="mobileDrawer">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-subtle);">
+            <span class="nav-logo" style="margin: 0;">OneHive</span>
+            <button onclick="toggleDrawer()"
+                style="background: none; border: none; color: var(--text-primary); font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px;"><i
+                    class="fas fa-times"></i></button>
+        </div>
+        <div style="display: flex; flex-direction: column; padding: 20px;">
+            <a href="index.html" class="drawer-link">Home</a>
+            <a href="service.html" class="drawer-link" data-i18n="nav-services">Services</a>
+            <a href="track.html" class="drawer-link" data-i18n="nav-track">Track Order</a>
+            <a href="worker-register.html" class="drawer-link" data-i18n="nav-partner">Become a Partner</a>
+            <a href="login.html" class="drawer-link" data-i18n="nav-login">Login</a>
+
+            <div style="display: flex; gap: 20px; margin-top: 40px;">
+                <div onclick="window.toggleTheme()"
+                    style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 18px; height: 48px; padding: 0 16px; background: var(--surface); border-radius: 12px;">
+                    <i class="fas fa-sun theme-sun"></i>
+                    <i class="fas fa-moon theme-moon"></i>
+                </div>
+                <div onclick="window.toggleLanguage()"
+                    style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 18px; height: 48px; padding: 0 16px; background: var(--surface); border-radius: 12px;">
+                    <i class="fas fa-language"></i>
+                    <span style="font-size: 14px; font-weight: 700;">EN</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="track-card">
+            <h2 data-i18n="track-title">Track Status</h2>
+            <p data-i18n="track-subtitle">Enter your ID to check your application status.</p>
+            <div class="input-group">
+                <input type="text" id="appIdInput" class="input-box" placeholder="Example: OH-PARTNER-0001"
+                    data-i18n="track-placeholder">
+                <button class="btn-track" onclick="trackStatus()" data-i18n="track-btn">Check Status</button>
+            </div>
+            <div id="errorMsg"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="track-error">ID not found.
+                    Please check and try again.</span>
+            </div>
+        </div>
+
+        <div id="resultSection">
+            <div class="profile-card">
+                <div class="profile-icon"><i class="fas fa-user-check"></i></div>
+                <div class="profile-details">
+                    <h3 id="uName">Loading...</h3>
+                    <p><strong data-i18n="track-service-type">Service Type:</strong> <span id="uService">--</span></p>
+                    <p><strong data-i18n="track-app-id">Application ID:</strong> <span id="uAppId">--</span></p>
+                    <p><strong data-i18n="track-mobile">Mobile Number:</strong> <span id="uMobile">--</span></p>
+                </div>
+            </div>
+
+            <div class="timeline-box">
+                <div class="timeline-header" data-i18n="track-progress-title">Application Progress</div>
+
+                <div class="timeline">
+                    <div class="step completed" id="step1">
+                        <div class="step-icon"><i class="fas fa-file-alt"></i></div>
+                        <div class="step-content">
+                            <div class="step-title" data-i18n="track-step1-title">Application Received</div>
+                            <div class="step-desc" data-i18n="track-step1-desc">Your application is in our database.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step pending" id="step2">
+                        <div class="step-icon"><i class="fas fa-fingerprint"></i></div>
+                        <div class="step-content">
+                            <div class="step-title" data-i18n="track-step2-title">Document Verification</div>
+                            <div class="step-desc" data-i18n="track-step2-desc">Please bring your ID (Aadhar/PAN) to our
+                                office.</div>
+                        </div>
+                    </div>
+                    <div class="step pending" id="step3">
+                        <div class="step-icon"><i class="fas fa-shield-alt"></i></div>
+                        <div class="step-content">
+                            <div class="step-title" data-i18n="track-step3-title">Background Check</div>
+                            <div class="step-desc" data-i18n="track-step3-desc">We are checking your past work history.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step pending" id="step4">
+                        <div class="step-icon"><i class="fas fa-tools"></i></div>
+                        <div class="step-content">
+                            <div class="step-title" data-i18n="track-step4-title">Skill Test</div>
+                            <div class="step-desc" data-i18n="track-step4-desc">We will test your skills for the
+                                service.</div>
+                        </div>
+                    </div>
+                    <div class="step pending" id="step5">
+                        <div class="step-icon"><i class="fas fa-check"></i></div>
+                        <div class="step-content">
+                            <div class="step-title" data-i18n="track-step5-title">Approved</div>
+                            <div class="step-desc" data-i18n="track-step5-desc">You are now a verified partner.</div>
+                        </div>
+                    </div>
+                    <div class="step pending" id="step6">
+                        <div class="step-icon"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="step-content">
+                            <div class="step-title" data-i18n="track-step6-title">Training Session</div>
+                            <div class="step-desc" data-i18n="track-step6-desc">Wait for your final training time.</div>
+                            <div class="slot-card" id="slotDetailBox">
+                                <div class="slot-title" data-i18n="track-meeting-time">Meeting Time</div>
+                                <div class="slot-time" id="slotTimeDisplay">--</div>
+                                <button class="reschedule-btn" onclick="requestReschedule()"
+                                    data-i18n="track-reschedule">Change Time</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JS Form Logic Intact -->
+    <script>
+        function toggleDrawer() {
+            const drawer = document.getElementById('mobileDrawer');
+            const overlay = document.getElementById('mobileDrawerOverlay');
+            const hamburger = document.getElementById('hamburgerMenu');
+
+            drawer.classList.toggle('open');
+            overlay.classList.toggle('show');
+            if (hamburger) hamburger.classList.toggle('active');
+
+            document.body.style.overflow = drawer.classList.contains('open') ? 'hidden' : '';
+        }
+
+        // --- CUSTOM NAV LOCATION SELECT ---
+        function toggleNavLocation() {
+            document.getElementById('navLocSelect').classList.toggle('open');
+        }
+
+        function selectNavCity(city) {
+            document.getElementById('cityDisplay').innerText = city;
+            const sel = document.getElementById('citySelector');
+            if (sel) sel.value = city;
+            localStorage.setItem('currentCity', city);
+            document.getElementById('navLocSelect').classList.remove('open');
+        }
+
+        async function detectNavLocation() {
+            const btn = document.getElementById('navLocBtn');
+            const icon = document.getElementById('navLocIcon');
+            const display = document.getElementById('cityDisplay');
+
+            if (!btn || !icon) return;
+
+            btn.classList.add('loading');
+            icon.className = "fas fa-spinner fa-spin";
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+                        const data = await res.json();
+                        const city = data.address.city || data.address.town || data.address.village || "Agra";
+                        selectNavCity(city);
+                        icon.className = "fas fa-check";
+                    } catch (e) {
+                        display.innerText = "Error";
+                        icon.className = "fas fa-exclamation-triangle";
+                    } finally {
+                        btn.classList.remove('loading');
+                        setTimeout(() => { icon.className = "fas fa-location-arrow"; }, 2000);
+                    }
+                }, () => {
+                    alert("Location access denied.");
+                    btn.classList.remove('loading');
+                    icon.className = "fas fa-location-arrow";
+                });
+            } else {
+                alert("Geolocation not supported.");
+                btn.classList.remove('loading');
+                icon.className = "fas fa-location-arrow";
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#navLocSelect')) {
+                document.getElementById('navLocSelect')?.classList.remove('open');
+            }
+        });
+
+        async function trackStatus() {
+            let inputId = document.getElementById('appIdInput').value.trim();
+            let errorMsg = document.getElementById('errorMsg');
+            let resultSection = document.getElementById('resultSection');
+
+            if (!inputId) return;
+
+            const SB = window.supabaseClient;
+            const { data: worker, error: workerErr } = await SB
+                .from('worker_applications')
+                .select('*')
+                .eq('app_id', inputId)
+                .single();
+
+            if (worker) {
+                errorMsg.style.display = 'none';
+                resultSection.style.display = 'block';
+
+                document.getElementById('uName').innerText = worker.from_name;
+                document.getElementById('uService').innerText = worker.service;
+                document.getElementById('uAppId').innerText = worker.app_id;
+                document.getElementById('uMobile').innerText = worker.mobile;
+
+                let currentStage = worker.status_level || 1;
+                let assignedSlot = worker.training_slot || "Not assigned yet";
+
+                updateTimelineUI(currentStage, assignedSlot);
+                if (window.i18n) window.i18n.updateDOM(window.currentLang || 'en');
+            } else {
+                errorMsg.style.display = 'block';
+                resultSection.style.display = 'none';
+            }
+        }
+
+        function updateTimelineUI(level, slotTime) {
+            for (let i = 1; i <= 6; i++) {
+                let step = document.getElementById('step' + i);
+                step.className = 'step pending';
+
+                if (i < level) {
+                    step.className = 'step completed';
+                    step.querySelector('.step-icon').innerHTML = '<i class="fas fa-check"></i>';
+                } else if (i === level) {
+                    step.className = 'step active';
+                    // Restore active icon based on step
+                    if (i === 1) step.querySelector('.step-icon').innerHTML = '<i class="fas fa-file-alt"></i>';
+                    if (i === 2) step.querySelector('.step-icon').innerHTML = '<i class="fas fa-fingerprint"></i>';
+                    if (i === 3) step.querySelector('.step-icon').innerHTML = '<i class="fas fa-shield-alt"></i>';
+                    if (i === 4) step.querySelector('.step-icon').innerHTML = '<i class="fas fa-tools"></i>';
+                    if (i === 5) step.querySelector('.step-icon').innerHTML = '<i class="fas fa-check"></i>';
+                    if (i === 6) step.querySelector('.step-icon').innerHTML = '<i class="fas fa-calendar-alt"></i>';
+                }
+            }
+
+            if (level === 6) {
+                document.getElementById('slotDetailBox').style.display = 'block';
+                document.getElementById('slotTimeDisplay').innerText = slotTime;
+            } else {
+                document.getElementById('slotDetailBox').style.display = 'none';
+            }
+        }
+
+        function requestReschedule() {
+            alert("Request sent. We will contact you soon.");
+        }
+
+        // Dynamic Nav update on login
+        (function updateNavAuth() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const navAuth = document.getElementById('navAuth');
+            if (isLoggedIn && navAuth) {
+                const userName = localStorage.getItem('userName') || 'User';
+                const userAvatar = localStorage.getItem('currentUserAvatar');
+                const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3B82F6&color=fff`;
+                const avatarSrc = (userAvatar && userAvatar !== '') ? userAvatar : fallback;
+                navAuth.innerHTML = `
+                    <div class="location-wrapper" style="border-right: none; padding-right: 0; gap: 4px;">
+                        <div class="nav-location-select" onclick="window.toggleTheme()" style="padding: 0 12px;">
+                            <i class="fas fa-sun theme-sun"></i>
+                            <i class="fas fa-moon theme-moon"></i>
+                        </div>
+                        <i class="fas fa-language" style="font-size: 18px; margin-left: 8px;"></i>
+                        <div class="nav-location-select" onclick="window.toggleLanguage()">
+                            <span class="nav-location-trigger" id="langSwitcherTrigger">EN</span>
+                        </div>
+                    </div>
+                    <a href="user-dashboard.html" class="cta-btn" style="padding: 4px 6px 4px 20px; gap: 12px;">${userName} <img src="${avatarSrc}" class="nav-avatar"></a>
+                `;
+            }
+        })();
+    </script>
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <a href="index.html" class="mbn-item" title="Home">
+            <i class="fas fa-house"></i>
+            <span class="mbn-label">Home</span>
+        </a>
+        <a href="service.html" class="mbn-item" title="Services">
+            <i class="fas fa-screwdriver-wrench"></i>
+            <span class="mbn-label">Services</span>
+        </a>
+        <a href="service.html" class="mbn-item mbn-center" title="Book Now">
+            <div class="mbn-center-bg"><i class="fas fa-calendar-check"></i></div>
+        </a>
+        <a href="track.html" class="mbn-item active" title="Track">
+            <i class="fas fa-truck-fast"></i>
+            <span class="mbn-label">Track</span>
+        </a>
+        <a href="user-dashboard.html" class="mbn-item" title="Account">
+            <i class="fas fa-circle-user"></i>
+            <span class="mbn-label">Account</span>
+        </a>
+    </nav>
+
+</body>
+
+</html>

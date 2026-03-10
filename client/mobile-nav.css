@@ -1,0 +1,148 @@
+/* ================================================
+   MOBILE BOTTOM NAVIGATION — OneHive
+   Style: Solid blue pill bar with expanding white active tab
+   ================================================ */
+
+/* ── 1. Hide top nav on mobile/tablet ── */
+@media (max-width: 1024px) {
+    nav:not(.mobile-bottom-nav) {
+        display: none !important;
+    }
+    body {
+        padding-top: 0 !important;
+    }
+}
+
+/* ── 2. Hidden on desktop ── */
+.mobile-bottom-nav {
+    display: none !important;
+}
+
+/* ── 3. Show on mobile/tablet ── */
+@media (max-width: 1024px) {
+
+    /* ── Outer blue pill ── */
+    .mobile-bottom-nav {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+
+        /* Fixed height */
+        height: 64px !important;
+        width: calc(100vw - 32px) !important;
+        max-width: 440px !important;
+        min-width: 280px !important;
+        box-sizing: border-box !important;
+
+        /* Positioning */
+        position: fixed !important;
+        top: auto !important;
+        bottom: 20px !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+
+        /* Solid blue — site accent colour */
+        background: #2563EB !important;
+        border-radius: 9999px !important;
+        padding: 8px 10px !important;
+        gap: 4px !important;
+
+        z-index: 99999 !important;
+        overflow: hidden !important;
+
+        box-shadow:
+            0 12px 40px rgba(37, 99, 235, 0.45),
+            0 4px 12px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    /* ── Each nav item ── */
+    .mobile-bottom-nav .mbn-item {
+        display: flex !important;
+        flex-direction: row !important;      /* icon + label side by side */
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 7px !important;
+        flex-shrink: 1 !important;
+        flex-grow: 0 !important;
+        flex-basis: auto !important;
+
+        height: 48px !important;
+        padding: 0 14px !important;
+        border-radius: 9999px !important;
+        text-decoration: none !important;
+        white-space: nowrap !important;
+
+        /* Inactive: translucent white */
+        color: rgba(255, 255, 255, 0.65) !important;
+        background: transparent !important;
+        transition: background 0.25s ease, color 0.25s ease, flex 0.3s ease, padding 0.3s ease !important;
+        cursor: pointer !important;
+        -webkit-tap-highlight-color: transparent !important;
+        overflow: hidden !important;
+    }
+
+    /* Icon */
+    .mobile-bottom-nav .mbn-item > i {
+        font-size: 17px !important;
+        line-height: 1 !important;
+        display: block !important;
+        flex-shrink: 0 !important;
+    }
+
+    /* Label — hidden on inactive items */
+    .mobile-bottom-nav .mbn-item > .mbn-label {
+        font-size: 13px !important;
+        font-weight: 700 !important;
+        letter-spacing: 0.1px !important;
+        line-height: 1 !important;
+        font-family: 'Plus Jakarta Sans', sans-serif !important;
+        display: none !important;     /* hidden by default */
+        white-space: nowrap !important;
+    }
+
+    /* Hover — slight white tint */
+    .mobile-bottom-nav .mbn-item:hover {
+        color: rgba(255, 255, 255, 0.9) !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+
+    /* ── Active item — white pill with label ── */
+    .mobile-bottom-nav .mbn-item.active {
+        background: #ffffff !important;
+        color: #2563EB !important;
+        padding: 0 18px !important;
+        flex-shrink: 0 !important;
+    }
+    .mobile-bottom-nav .mbn-item.active > i {
+        color: #2563EB !important;
+    }
+    /* Show label only when active */
+    .mobile-bottom-nav .mbn-item.active > .mbn-label {
+        display: block !important;
+        color: #2563EB !important;
+    }
+
+    /* ── Center "Book" behaves same as other items ── */
+    .mobile-bottom-nav .mbn-item.mbn-center {
+        flex-shrink: 1 !important;
+    }
+
+    /* Remove the circle bg div — not used in this design */
+    .mobile-bottom-nav .mbn-item.mbn-center > .mbn-center-bg {
+        display: contents !important; /* pass through to the i inside */
+    }
+
+    /* Remove any ::before / ::after remnants */
+    .mobile-bottom-nav .mbn-item::before,
+    .mobile-bottom-nav .mbn-item::after {
+        display: none !important;
+    }
+
+    /* ── Content padding ── */
+    body {
+        padding-bottom: 100px !important;
+    }
+}

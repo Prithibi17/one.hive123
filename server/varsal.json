@@ -1,0 +1,22 @@
+{
+  "server": {
+    "port": 3000,
+    "nodeEnv": "development"
+  },
+  "database": {
+    "url": "postgresql://postgres:postgres@localhost:5432/onehive"
+  },
+  "jwt": {
+    "secret": "super-secret-jwt-key-change-in-production",
+    "expiresIn": "24h"
+  },
+  "email": {
+    "user": "onehiveindia@gmail.com",
+    "pass": "frkk nkwj bktn cqss",
+    "service": "gmail"
+  },
+  "supabase": {
+    "url": "https://adtdjzohzcyrczpnsusc.supabase.co",
+    "anonKey": "sb_publishable_uxkUIgza1mQIPrxNxkrv6Q_4DO6xpRm"
+  }
+}

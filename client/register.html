@@ -1,0 +1,541 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneHive | User Registration</title>
+    <!-- Plus Jakarta Sans for premium SaaS typography -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="mobile-nav.css">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-init.js"></script>
+
+    <!-- Multi-Language & Theme Support -->
+    <script src="theme.js"></script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #050b14;
+            --bg-gradient: radial-gradient(circle at 10% 90%, rgba(37, 99, 235, 0.1) 0%, transparent 60%),
+                radial-gradient(circle at 90% 10%, rgba(37, 99, 235, 0.15) 0%, transparent 50%);
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --accent: #3B82F6;
+            --accent-hover: #2563EB;
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-glass: rgba(15, 23, 42, 0.7);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-active: rgba(59, 130, 246, 0.5);
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-pill: 9999px;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        [data-theme="light"] {
+            --bg-base: #F8FAFC;
+            --bg-gradient: radial-gradient(circle at 10% 90%, rgba(241, 112, 36, 0.08) 0%, transparent 60%),
+                radial-gradient(circle at 90% 10%, rgba(241, 112, 36, 0.05) 0%, transparent 50%);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --surface: rgba(255, 255, 255, 0.9);
+            --border-subtle: rgba(0, 0, 0, 0.06);
+            --accent: #2563EB;
+            --accent-hover: #1D4ED8;
+        }
+
+        /* --- MODERN GLOBAL SCROLLBAR --- */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-base);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--accent), var(--accent-hover));
+            border-radius: 10px;
+            border: 2px solid var(--bg-base);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 24px;
+            position: relative;
+        }
+
+        .ambient-shape-1 {
+            position: fixed;
+            top: -10vw;
+            right: -10vw;
+            width: 40vw;
+            height: 40vw;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .ambient-shape-2 {
+            position: fixed;
+            bottom: -15vw;
+            left: -10vw;
+            width: 50vw;
+            height: 50vw;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.08) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        .box {
+            background: var(--surface-glass);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            padding: 48px;
+            border-radius: var(--radius-lg);
+            width: 100%;
+            max-width: 520px;
+            text-align: center;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border-subtle);
+            z-index: 10;
+        }
+
+        h2 {
+            color: var(--text-primary);
+            margin-bottom: 40px;
+            font-size: 32px;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        h2 i {
+            color: var(--accent);
+            font-style: normal;
+            font-weight: 300;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+            text-align: left;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            font-size: 15px;
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.02);
+            transition: 0.3s;
+            outline: none;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        input::placeholder {
+            color: #6B7280;
+            font-weight: 400;
+        }
+
+        input:focus {
+            border-color: var(--border-active);
+            background: rgba(255, 255, 255, 0.04);
+            box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1), inset 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .location-btn {
+            position: absolute;
+            right: 8px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 8px 16px;
+            border-radius: var(--radius-md);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+        }
+
+        .location-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .location-btn .fa-spin {
+            color: var(--accent);
+        }
+
+        .pass-icon {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #6B7280;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+        }
+
+        .pass-icon:hover {
+            color: var(--text-primary);
+        }
+
+        .rules-box {
+            font-size: 13px;
+            color: var(--text-secondary);
+            background: rgba(0, 0, 0, 0.3);
+            padding: 20px;
+            border-radius: var(--radius-md);
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            line-height: 1.6;
+            text-align: left;
+        }
+
+        .rules-title {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+            font-size: 13px;
+        }
+
+        .rule-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s;
+            font-weight: 500;
+        }
+
+        .rule-item i {
+            color: #4B5563;
+            font-size: 12px;
+        }
+
+        .rule-item.valid {
+            color: #10B981;
+        }
+
+        .rule-item.valid i {
+            color: #10B981;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 16px;
+            background: var(--accent);
+            color: white;
+            border: none;
+            border-radius: var(--radius-pill);
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.2);
+            margin-top: 8px;
+        }
+
+        .btn:hover {
+            background: var(--accent-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(59, 130, 246, 0.3);
+        }
+
+        .link {
+            display: block;
+            margin-top: 24px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .link:hover {
+            color: var(--accent);
+        }
+
+        .home-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 32px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            text-decoration: none;
+            border: 1px solid var(--border-subtle);
+            padding: 8px 16px;
+            border-radius: var(--radius-pill);
+            transition: 0.3s;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .home-link:hover {
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        @media (max-width: 1199px) {
+            .box {
+                padding: 60px 40px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 16px;
+            }
+
+            .box {
+                padding: 40px 24px;
+                border-radius: 20px;
+                width: 100%;
+            }
+
+            h2 {
+                font-size: 24px;
+            }
+
+            /* Native App Touch Targets */
+            input,
+            select,
+            button {
+                min-height: 48px;
+                font-size: 16px !important;
+            }
+        }
+    </style>
+    <!-- Custom i18n Styles -->
+    <style>
+        .lang-switcher-reg {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            z-index: 100;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="lang-switcher-reg" style="display: flex; gap: 8px;">
+        <div class="home-link" onclick="window.toggleTheme()" style="cursor: pointer;">
+            <i class="fas fa-sun theme-sun"></i>
+            <i class="fas fa-moon theme-moon"></i>
+        </div>
+        <div class="home-link" onclick="window.toggleLanguage()" style="cursor: pointer;">
+            <i class="fas fa-language"></i> <span id="langSwitcherTrigger">EN</span>
+        </div>
+    </div>
+
+    <div class="box">
+        <h2><i data-i18n="reg-title-i">Create</i><span data-i18n="reg-title-tail"> Account</span></h2>
+
+        <div class="input-group"><input type="text" id="name" placeholder="Full Name" data-i18n="full-name-placeholder">
+        </div>
+        <div class="input-group"><input type="email" id="email" placeholder="Email Address"
+                data-i18n="email-placeholder"></div>
+        <div class="input-group"><input type="tel" id="phone" placeholder="Phone Number" data-i18n="phone-placeholder">
+        </div>
+        <!-- Hidden input maintained for exact logic preservation -->
+        <div class="input-group" style="display:none;"><input type="tel" id="altPhone"
+                placeholder="Alternate Phone (Optional)"></div>
+
+        <div class="input-group">
+            <input type="text" id="address" placeholder="Address" data-i18n="address-placeholder">
+            <button class="location-btn" onclick="detectLocationSmart()"><i class="fas fa-crosshairs" id="locIcon"></i>
+                <span data-i18n="detect-btn-reg">Detect</span></button>
+        </div>
+
+        <div class="input-group">
+            <input type="password" id="password" placeholder="Create Password" data-i18n="password-placeholder-create"
+                onkeyup="validateRealTime()">
+            <i class="fas fa-eye-slash pass-icon" id="eyeIcon" onclick="togglePass('password', 'eyeIcon')"></i>
+        </div>
+
+        <div class="rules-box">
+            <span class="rules-title" data-i18n="pass-req-title">Password Requirements:</span>
+            <div class="rule-item" id="rule-length"><i class="fas fa-circle"></i> <span data-i18n="pass-req-len">Minimum
+                    8 Characters</span></div>
+            <div class="rule-item" id="rule-capital"><i class="fas fa-circle"></i> <span data-i18n="pass-req-cap">1
+                    Uppercase Letter</span></div>
+            <div class="rule-item" id="rule-small"><i class="fas fa-circle"></i> <span data-i18n="pass-req-small">1
+                    Lowercase Letter</span></div>
+            <div class="rule-item" id="rule-number"><i class="fas fa-circle"></i> <span data-i18n="pass-req-num">1
+                    Number</span></div>
+            <div class="rule-item" id="rule-special"><i class="fas fa-circle"></i> <span data-i18n="pass-req-spec">1
+                    Special Character</span></div>
+        </div>
+
+        <div class="input-group">
+            <input type="password" id="confirmPassword" placeholder="Confirm Password"
+                data-i18n="password-placeholder-confirm">
+            <i class="fas fa-eye-slash pass-icon" id="eyeIconConfirm"
+                onclick="togglePass('confirmPassword', 'eyeIconConfirm')"></i>
+        </div>
+
+        <button class="btn" onclick="registerUser()" data-i18n="register-btn">Register</button>
+        <a href="login.html" class="link" data-i18n="already-have-account">Already have an account? Login</a>
+
+        <a href="index.html" class="home-link"><i class="fas fa-arrow-left"></i> <span data-i18n="go-back">Go
+                Back</span></a>
+    </div>
+
+    <!-- JavaScript logic preserved EXACTLY -->
+    <script>
+        function togglePass(inputId, iconId) {
+            let input = document.getElementById(inputId); let icon = document.getElementById(iconId);
+            if (input.type === "password") { input.type = "text"; icon.classList.remove("fa-eye-slash"); icon.classList.add("fa-eye"); }
+            else { input.type = "password"; icon.classList.remove("fa-eye"); icon.classList.add("fa-eye-slash"); }
+        }
+
+        function validateRealTime() {
+            let password = document.getElementById('password').value;
+            const hasLength = password.length >= 8;
+            const hasCapital = /[A-Z]/.test(password); const hasSmall = /[a-z]/.test(password);
+            const hasNumber = /\d/.test(password); const hasSpecial = /[\W_]/.test(password);
+
+            function updateRule(elementId, isValid) {
+                let el = document.getElementById(elementId);
+                if (!el) return;
+                let icon = el.querySelector("i");
+                if (isValid) { el.classList.add("valid"); icon.classList.remove("fa-circle"); icon.classList.add("fa-check-circle"); }
+                else { el.classList.remove("valid"); icon.classList.remove("fa-check-circle"); icon.classList.add("fa-circle"); }
+            }
+            updateRule("rule-length", hasLength);
+            updateRule("rule-capital", hasCapital); updateRule("rule-small", hasSmall);
+            updateRule("rule-number", hasNumber); updateRule("rule-special", hasSpecial);
+        }
+
+        function detectLocationSmart() {
+            const addressField = document.getElementById('address'); const icon = document.getElementById('locIcon');
+            addressField.value = "Finding your location..."; icon.classList.add("fa-spinner", "fa-spin"); icon.classList.remove("fa-crosshairs");
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((pos) => {
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`)
+                        .then(res => res.json()).then(data => {
+                            addressField.value = data.display_name; icon.classList.remove("fa-spinner", "fa-spin"); icon.classList.add("fa-check");
+                        }).catch(() => { addressField.value = ""; icon.classList.remove("fa-spinner", "fa-spin"); icon.classList.add("fa-crosshairs"); });
+                }, () => { alert("Location access denied."); addressField.value = ""; icon.classList.remove("fa-spinner", "fa-spin"); icon.classList.add("fa-crosshairs"); });
+            } else { alert("GPS not supported by your browser."); addressField.value = ""; icon.classList.remove("fa-spinner", "fa-spin"); icon.classList.add("fa-crosshairs"); }
+        }
+
+        async function registerUser() {
+            let name = document.getElementById('name').value;
+            let email = document.getElementById('email').value;
+            let phone = document.getElementById('phone').value;
+            let altPhone = document.getElementById('altPhone').value;
+            let address = document.getElementById('address').value;
+            let password = document.getElementById('password').value;
+            let confirmPassword = document.getElementById('confirmPassword').value;
+
+            if (!name || !email || !phone || !address || !password) { alert("Please fill in all fields."); return; }
+            if (password !== confirmPassword) { alert("Passwords do not match."); return; }
+
+            const strongPasswordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/;
+            if (!strongPasswordRegex.test(password)) { alert("Password does not meet requirements. Please follow the rules."); return; }
+
+            // Check if user already exists in Supabase
+            const { data: existingUser, error: checkError } = await window.supabaseClient
+                .from('users')
+                .select('email')
+                .eq('email', email.toLowerCase())
+                .single();
+
+            if (existingUser) {
+                alert("This email is already registered. Please login.");
+                window.location.href = "login.html";
+                return;
+            }
+
+            // Insert new user into Supabase
+            const { error: insertError } = await window.supabaseClient
+                .from('users')
+                .insert([{ name, email: email.toLowerCase(), phone, alt_phone: altPhone, address, password }]);
+
+            if (insertError) {
+                alert("Error creating account: " + insertError.message);
+                return;
+            }
+
+            alert("Account created! Please login.");
+            window.location.href = "login.html";
+        }
+    </script>
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <a href="index.html" class="mbn-item" title="Home">
+            <i class="fas fa-house"></i>
+            <span class="mbn-label">Home</span>
+        </a>
+        <a href="service.html" class="mbn-item" title="Services">
+            <i class="fas fa-screwdriver-wrench"></i>
+            <span class="mbn-label">Services</span>
+        </a>
+        <a href="service.html" class="mbn-item mbn-center" title="Book Now">
+            <div class="mbn-center-bg"><i class="fas fa-calendar-check"></i></div>
+        </a>
+        <a href="track.html" class="mbn-item" title="Track">
+            <i class="fas fa-truck-fast"></i>
+            <span class="mbn-label">Track</span>
+        </a>
+        <a href="login.html" class="mbn-item active" title="Account">
+            <i class="fas fa-circle-user"></i>
+            <span class="mbn-label">Account</span>
+        </a>
+    </nav>
+
+</body>
+
+</html>

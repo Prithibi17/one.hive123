@@ -1,0 +1,1071 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneHive | User Dashboard</title>
+    <!-- Plus Jakarta Sans -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="mobile-nav.css">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-init.js"></script>
+
+    <!-- Multi-Language & Theme Support -->
+    <script src="theme.js"></script>
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #050b14;
+            --bg-gradient: radial-gradient(circle at 10% 90%, rgba(37, 99, 235, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 90% 10%, rgba(37, 99, 235, 0.05) 0%, transparent 40%);
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --accent: #3B82F6;
+            --accent-hover: #2563EB;
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-glass: rgba(15, 23, 42, 0.7);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --radius-md: 12px;
+            --radius-lg: 24px;
+            --radius-pill: 9999px;
+            --font-sans: 'Plus Jakarta Sans', sans-serif;
+            --success: #10B981;
+            --warning: #F59E0B;
+        }
+
+        [data-theme="light"] {
+            --bg-base: #F8FAFC;
+            --bg-gradient: radial-gradient(circle at 10% 90%, rgba(241, 112, 36, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 90% 10%, rgba(241, 112, 36, 0.05) 0%, transparent 40%);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --surface: rgba(255, 255, 255, 0.9);
+            --surface-glass: rgba(255, 255, 255, 0.8);
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --accent: #2563EB;
+            --accent-hover: #1D4ED8;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: var(--font-sans);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            padding: 0;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        /* Ambient shapes */
+        .ambient-shape-1 {
+            position: absolute;
+            top: -10%;
+            right: -5%;
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        /* --- DASHBOARD LAYOUT --- */
+        .dashboard-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* --- NAV BAR --- */
+        nav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 40px;
+            background: var(--surface-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        .hamburger,
+        .mobile-menu {
+            display: none;
+        }
+
+        @media (max-width: 1199px) {
+            nav {
+                padding: 12px 24px;
+            }
+
+            .nav-right {
+                display: none;
+            }
+
+            .hamburger {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                cursor: pointer;
+                z-index: 1001;
+                padding: 10px;
+                border: 1px solid var(--border-subtle);
+                border-radius: 12px;
+                background: var(--surface-glass);
+            }
+
+            .hamburger span {
+                display: block;
+                width: 24px;
+                height: 2px;
+                background: var(--text-primary);
+                transition: 0.3s;
+                border-radius: 2px;
+            }
+
+            .hamburger.active span:nth-child(1) {
+                transform: rotate(45deg) translate(6px, 6px);
+            }
+
+            .hamburger.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger.active span:nth-child(3) {
+                transform: rotate(-45deg) translate(5px, -5px);
+            }
+
+            /* Mobile Menu Overlay */
+            .mobile-menu {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 100%;
+                height: 100vh;
+                background: var(--bg-base);
+                backdrop-filter: blur(20px);
+                z-index: 1000;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 24px;
+                transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                padding: 40px;
+            }
+
+            .mobile-menu.active {
+                right: 0;
+            }
+
+            .mobile-menu a {
+                font-size: 24px;
+                font-weight: 700;
+                color: var(--text-primary);
+                text-decoration: none;
+                transition: 0.3s;
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            .mobile-menu.active a {
+                opacity: 1;
+                transform: translateY(0);
+                transition-delay: 0.2s;
+            }
+
+            .mobile-menu .menu-toggles {
+                display: flex;
+                gap: 20px;
+                margin-top: 20px;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: 0.3s;
+            }
+
+            .mobile-menu.active .menu-toggles {
+                opacity: 1;
+                transform: translateY(0);
+                transition-delay: 0.5s;
+            }
+
+            .menu-toggle-btn {
+                width: 56px;
+                height: 56px;
+                border-radius: 16px;
+                background: var(--surface);
+                border: 1px solid var(--border-subtle);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-primary);
+                font-size: 20px;
+                cursor: pointer;
+            }
+        }
+
+        .nav-logo {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            text-decoration: none;
+            margin-left: -32px;
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .nav-welcome {
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .nav-location-select {
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .nav-location-trigger {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+
+        .nav-location-trigger::after {
+            content: '';
+            display: inline-block;
+            border: 4px solid transparent;
+            border-top-color: currentColor;
+            margin-left: 6px;
+            vertical-align: middle;
+            position: relative;
+            top: 2px;
+            transition: transform 0.3s;
+        }
+
+        .location-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .btn-home {
+            text-decoration: none;
+            color: var(--text-secondary);
+            font-size: 14px;
+            font-weight: 600;
+            padding: 8px 20px;
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-pill);
+            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .btn-home:hover {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .btn-logout {
+            background: rgba(255, 255, 255, 0.03);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 8px 20px;
+            border-radius: var(--radius-pill);
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.3s;
+        }
+
+        .btn-logout:hover {
+            background: rgba(239, 68, 68, 0.1);
+            color: #EF4444;
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .nav-user-pill {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 16px 4px 6px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-pill);
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .nav-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+        }
+
+        /* --- DASHBOARD GRID --- */
+        .grid {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            gap: 32px;
+        }
+
+        /* --- PROFILE CARD --- */
+        .profile-card {
+            background: var(--surface-glass);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 40px 32px;
+            text-align: center;
+            position: sticky;
+            top: 40px;
+            height: fit-content;
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 24px;
+        }
+
+        .avatar-img {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--border-subtle);
+            background: var(--surface);
+        }
+
+        .avatar-overlay {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: var(--accent);
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border: 4px solid var(--bg-base);
+            transition: 0.3s;
+            color: white;
+            font-size: 14px;
+        }
+
+        .avatar-overlay:hover {
+            background: var(--accent-hover);
+            transform: scale(1.1);
+        }
+
+        .profile-info h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .profile-info p {
+            font-size: 13px;
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+
+        .stats-min {
+            display: flex;
+            justify-content: center;
+            gap: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-subtle);
+        }
+
+        .stat-item span {
+            display: block;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-item strong {
+            font-size: 18px;
+            color: var(--text-primary);
+        }
+
+        /* --- CONTENT AREA --- */
+        .main-content {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+
+        .section-card {
+            background: var(--surface-glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .section-header h3 {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-header h3 i {
+            color: var(--accent);
+        }
+
+        .order-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-md);
+            margin-bottom: 12px;
+            transition: 0.3s;
+        }
+
+        .order-item:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .order-meta {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .order-icon {
+            width: 44px;
+            height: 44px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 18px;
+        }
+
+        .order-details h4 {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .order-details span {
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .order-status {
+            padding: 6px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .status-pending {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+        }
+
+        .status-completed {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--success);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 0;
+            color: var(--text-secondary);
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Hidden File Input */
+        #avatarInput {
+            display: none;
+        }
+
+        @media (max-width: 1199px) {
+            nav {
+                padding: 8px 24px;
+            }
+
+            .dashboard-container {
+                padding: 32px 24px;
+            }
+
+            .grid {
+                grid-template-columns: 280px 1fr;
+                gap: 24px;
+            }
+
+            .section-card {
+                padding: 24px;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 12px 16px;
+                gap: 10px;
+            }
+
+            .nav-logo {
+                margin: 0 !important;
+            }
+
+            .nav-logo img {
+                height: 32px !important;
+            }
+
+            .ambient-shape-1 {
+                display: none;
+            }
+
+            .nav-right {
+                flex-direction: column;
+                gap: 8px;
+                width: 100%;
+                align-items: flex-end;
+            }
+
+            .location-wrapper {
+                display: none;
+            }
+
+            .dashboard-container {
+                padding: 20px 16px;
+            }
+
+            .welcome-box h1 {
+                font-size: 24px !important;
+            }
+
+            .grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+
+            .profile-card {
+                position: relative;
+                top: 0;
+            }
+
+            .section-header h3 {
+                font-size: 16px;
+            }
+
+            .order-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+                padding: 16px;
+            }
+
+            .order-status {
+                width: 100%;
+                text-align: center;
+                padding: 8px;
+            }
+
+            .quick-actions-grid {
+                grid-template-columns: 1fr !important;
+            }
+
+            .quick-actions-grid a {
+                display: block !important;
+                width: 100% !important;
+            }
+
+            .btn-home,
+            .btn-logout {
+                display: none !important;
+            }
+
+            nav .hamburger,
+            .mobile-menu {
+                display: none !important;
+            }
+
+            /* Bottom App Navigation Bar */
+            .bottom-nav-bar {
+                display: flex;
+                position: fixed;
+                bottom: 0;
+                left: 0;
+                width: 100%;
+                background: var(--surface-glass);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                border-top: 1px solid var(--border-subtle);
+                z-index: 1000;
+                justify-content: space-around;
+                align-items: center;
+                padding: 12px 0;
+                padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px));
+            }
+
+            .bottom-nav-item {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 4px;
+                color: var(--text-secondary);
+                text-decoration: none;
+                font-size: 11px;
+                font-weight: 600;
+                transition: 0.3s;
+                min-width: 64px;
+            }
+
+            .bottom-nav-item i {
+                font-size: 20px;
+                margin-bottom: 2px;
+            }
+
+            .bottom-nav-item.active,
+            .bottom-nav-item:active {
+                color: var(--accent);
+            }
+
+            .dashboard-container {
+                padding-bottom: 100px !important;
+            }
+
+            /* Native App Touch Targets */
+            button,
+            input,
+            select,
+            textarea {
+                min-height: 48px;
+            }
+
+            .order-item button {
+                font-size: 14px !important;
+                padding: 12px 20px !important;
+                width: 100%;
+            }
+
+            .order-status {
+                min-height: 48px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+        }
+
+        .bottom-nav-bar {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="ambient-shape-1"></div>
+
+    <nav>
+        <a href="index.html" class="nav-logo">
+            <img src="One_Hive.png" alt="OneHive"
+                style="height: 120px; width: auto; filter: drop-shadow(0px 0px 12px rgba(255,255,255,0.15));"
+                onerror="this.style.display='none'">
+        </a>
+
+        <div class="nav-right">
+            <div class="location-wrapper">
+                <div class="nav-location-select" onclick="window.toggleTheme()" style="padding: 0 12px;">
+                    <i class="fas fa-sun theme-sun"></i>
+                    <i class="fas fa-moon theme-moon"></i>
+                </div>
+                <i class="fas fa-language" style="font-size: 18px; margin-left: 8px;"></i>
+                <div class="nav-location-select" onclick="window.toggleLanguage()">
+                    <span class="nav-location-trigger" id="langSwitcherTrigger">EN</span>
+                </div>
+            </div>
+            <a href="index.html" class="btn-home" data-i18n="dash-homepage"><i class="fas fa-home"></i>
+                <span>Homepage</span></a>
+            <button class="btn-logout" onclick="logout()" data-i18n="dash-logout"><i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span></button>
+        </div>
+
+        <div class="hamburger" id="hamburgerMenu" onclick="toggleMobileMenu()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Overlay -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="index.html" onclick="toggleMobileMenu()">Homepage</a>
+        <a href="service.html" data-i18n="nav-services" onclick="toggleMobileMenu()">Services</a>
+        <a href="track.html" data-i18n="nav-track" onclick="toggleMobileMenu()">Track Order</a>
+        <a href="javascript:void(0)" onclick="logout(); toggleMobileMenu()" data-i18n="dash-logout">Logout</a>
+
+        <div class="menu-toggles">
+            <div class="menu-toggle-btn" onclick="window.toggleTheme()">
+                <i class="fas fa-sun theme-sun"></i>
+                <i class="fas fa-moon theme-moon"></i>
+            </div>
+            <div class="menu-toggle-btn" onclick="window.toggleLanguage()">
+                <i class="fas fa-language"></i>
+                <span class="lang-switcher-text" style="font-size: 14px; font-weight: 700; margin-left: 4px;">EN</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="dashboard-container">
+        <div class="welcome-box" style="margin-bottom: 40px;">
+            <h1 style="font-size:32px; font-weight:700; letter-spacing:-1px;"><span data-i18n="dash-hello">Hello,
+                </span><span id="userName">User</span></h1>
+            <p style="color:var(--text-secondary); font-size:14px; margin-top:4px;" data-i18n="dash-welcome">Welcome to
+                your OneHive Command Center.</p>
+        </div>
+
+        <div class="grid">
+            <!-- PROFILE SIDEBAR -->
+            <aside class="profile-card">
+                <div class="avatar-container">
+                    <img id="avatarDisplay" src="https://ui-avatars.com/api/?name=User&background=random"
+                        class="avatar-img" alt="User Avatar">
+                    <label for="avatarInput" class="avatar-overlay">
+                        <i class="fas fa-camera"></i>
+                    </label>
+                    <input type="file" id="avatarInput" accept="image/*" onchange="uploadAvatar(this)">
+                </div>
+
+                <div class="profile-info">
+                    <h2 id="fullNameDisplay">Loading...</h2>
+                    <p id="emailDisplay">email@example.com</p>
+                </div>
+
+                <div class="stats-min">
+                    <div class="stat-item">
+                        <span data-i18n="dash-total-orders">Total Orders</span>
+                        <strong id="totalOrders">0</strong>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT -->
+            <main class="main-content">
+                <!-- QUICK ACTIONS -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h3 data-i18n="dash-quick-actions"><i class="fas fa-bolt"></i> Quick Actions</h3>
+                    </div>
+                    <div class="quick-actions-grid"
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px;">
+                        <a href="service.html?service=Electrician" class="btn-home"
+                            style="text-align:center; padding: 12px;" data-i18n="service-electrician">Electrician</a>
+                        <a href="service.html?service=Plumber" class="btn-home"
+                            style="text-align:center; padding: 12px;" data-i18n="service-plumber">Plumber</a>
+                        <a href="service.html?service=AC Repair" class="btn-home"
+                            style="text-align:center; padding: 12px;" data-i18n="service-ac">AC Repair</a>
+                        <a href="service.html?service=Cleaning" class="btn-home"
+                            style="text-align:center; padding: 12px;" data-i18n="service-cleaning">Cleaning</a>
+                    </div>
+                </section>
+
+                <!-- RECENT ACTIVITY -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h3 data-i18n="dash-recent-activity"><i class="fas fa-history"></i> Recent Activity</h3>
+                        <button onclick="initDashboard()"
+                            style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:13px;">
+                            <i class="fas fa-sync-alt"></i> <span data-i18n="dash-refresh">Refresh</span>
+                        </button>
+                    </div>
+                    <div id="orderHistoryList">
+                        <!-- Orders will be loaded here -->
+                        <div class="empty-state">
+                            <i class="fas fa-box-open"></i>
+                            <p data-i18n="dash-no-orders">No services booked yet.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ACCOUNT DETAILS -->
+                <section class="section-card">
+                    <div class="section-header">
+                        <h3 data-i18n="dash-account-settings"><i class="fas fa-user-gear"></i> Account Settings</h3>
+                    </div>
+                    <div style="font-size: 14px; color: var(--text-secondary);">
+                        <div style="margin-bottom: 12px; display: flex; justify-content: space-between;">
+                            <span data-i18n="dash-member-since">Member Since:</span>
+                            <span id="memberSince" style="color: var(--text-primary);">...</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between;">
+                            <span data-i18n="dash-auth-status">Auth Status:</span>
+                            <span style="color: var(--success);" data-i18n="dash-verified-partner">Verified Partner
+                                Connect</span>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <script>
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            const hamburger = document.getElementById('hamburgerMenu');
+            menu.classList.toggle('active');
+            hamburger.classList.toggle('active');
+            document.body.style.overflow = menu.classList.contains('active') ? 'hidden' : '';
+        }
+
+        const SB = window.supabaseClient;
+
+        // Redirect if not logged in
+        if (localStorage.getItem('isLoggedIn') !== 'true') {
+            window.location.href = "login.html";
+        }
+
+        async function initDashboard() {
+            const email = localStorage.getItem('currentUserEmail');
+            if (!email) return;
+
+            // 1. Fetch User Data
+            const { data: user, error } = await SB
+                .from('users')
+                .select('*')
+                .eq('email', email)
+                .single();
+
+            if (user) {
+                document.getElementById('userName').innerText = user.name.split(' ')[0];
+                document.getElementById('fullNameDisplay').innerText = user.name;
+                document.getElementById('emailDisplay').innerText = user.email;
+                document.getElementById('memberSince').innerText = new Date(user.created_at).toLocaleDateString();
+
+                if (user.avatar_url) {
+                    document.getElementById('avatarDisplay').src = user.avatar_url;
+                    localStorage.setItem('currentUserAvatar', user.avatar_url);
+                } else {
+                    const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name)}&background=3B82F6&color=fff`;
+                    document.getElementById('avatarDisplay').src = fallback;
+                    localStorage.setItem('currentUserAvatar', fallback);
+                }
+            }
+
+            // 2. Fetch Order History
+            await loadOrders(email);
+        }
+
+        async function loadOrders(email) {
+            const { data: orders, error } = await SB
+                .from('orders')
+                .select('*')
+                .eq('user_email', email)
+                .order('created_at', { ascending: false });
+
+            const list = document.getElementById('orderHistoryList');
+            if (orders && orders.length > 0) {
+                document.getElementById('totalOrders').innerText = orders.length;
+                list.innerHTML = orders.map(o => {
+                    const statusKey = `status-${o.status}`;
+                    const serviceKey = `service-${o.service_name.toLowerCase().replace(' repair', '').replace(' ', '-')}`;
+
+                    return `
+                        <div class="order-item">
+                            <div class="order-meta">
+                                <div class="order-icon"><i class="fas ${getIcon(o.service_name)}"></i></div>
+                                <div class="order-details">
+                                    <h4 data-i18n="${serviceKey}">${o.service_name}</h4>
+                                    <span>${new Date(o.created_at).toLocaleDateString()}</span>
+                                </div>
+                            </div>
+                            <div style="display:flex; align-items:center; gap:12px;">
+                                ${o.status === 'completed' || o.status === 'pending' ? `<button onclick="leaveReview('${o.id}')" style="background:var(--accent); color:white; border:none; padding:12px 20px; border-radius:12px; font-size:14px; font-weight:600; cursor:pointer;" data-i18n="dash-review">Review</button>` : ''}
+                                <div class="order-status status-${o.status}" data-i18n="${statusKey}">${o.status}</div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                if (window.i18n) window.i18n.updateDOM(window.currentLang || 'en');
+            }
+        }
+
+        async function leaveReview(orderId) {
+            const review = prompt("Please enter your review (1-5 stars or feedback):");
+            if (review) {
+                // 1. Fetch current order to get existing details
+                const { data: order } = await SB.from('orders').select('details').eq('id', orderId).single();
+                const currentDetails = order?.details || {};
+
+                // 2. Merge new review into details
+                const updatedDetails = { ...currentDetails, review: review };
+
+                // 3. Update the order
+                const { error } = await SB.from('orders').update({ details: updatedDetails }).eq('id', orderId);
+
+                if (!error) {
+                    alert("Thank you for your feedback! Your review has been submitted.");
+                } else {
+                    console.error("Review update error:", error);
+                }
+            }
+        }
+
+        function getIcon(service) {
+            const s = service.toLowerCase();
+            if (s.includes('ac')) return 'fa-snowflake';
+            if (s.includes('elect')) return 'fa-bolt';
+            if (s.includes('plum')) return 'fa-faucet';
+            if (s.includes('clean')) return 'fa-broom';
+            if (s.includes('paint')) return 'fa-paint-roller';
+            return 'fa-tools';
+        }
+
+        async function uploadAvatar(input) {
+            if (!input.files || !input.files[0]) return;
+            const file = input.files[0];
+            const email = localStorage.getItem('currentUserEmail');
+
+            // For PROTOTYPE: Convert image to Base64 (to avoid setting up Supabase Storage buckets)
+            const reader = new FileReader();
+            reader.onload = async function (e) {
+                const base64Img = e.target.result;
+
+                const { error } = await SB
+                    .from('users')
+                    .update({ avatar_url: base64Img })
+                    .eq('email', email);
+
+                if (!error) {
+                    document.getElementById('avatarDisplay').src = base64Img;
+                    localStorage.setItem('currentUserAvatar', base64Img);
+                    alert("Profile picture updated!");
+                } else {
+                    console.error("Upload error details:", error);
+                    let msg = error.message || "Unknown error";
+                    if (msg.includes('column') || msg.includes('schema cache')) {
+                        alert(`SCHEMA ERROR: ${msg}\n\n1. Ensure you ran the SQL patch in Supabase.\n2. TRY REFRESHING THIS PAGE (F5) to clear the Supabase schema cache.`);
+                    } else {
+                        alert("UPLOAD FAILED: " + msg);
+                    }
+                }
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = "index.html";
+        }
+
+        initDashboard();
+    </script>
+    <!-- App-Style Bottom Tab Navigation -->
+    <div class="bottom-nav-bar">
+        <a href="index.html" class="bottom-nav-item" data-i18n="dash-homepage">
+            <i class="fas fa-home"></i>
+            <span>Home</span>
+        </a>
+        <a href="service.html" class="bottom-nav-item" data-i18n="nav-services">
+            <i class="fas fa-tools"></i>
+            <span>Services</span>
+        </a>
+        <a href="track.html" class="bottom-nav-item" data-i18n="nav-track">
+            <i class="fas fa-map-marker-alt"></i>
+            <span>Track</span>
+        </a>
+        <a href="#" class="bottom-nav-item" onclick="window.scrollTo(0,0)">
+            <i class="fas fa-user"></i>
+            <span>Profile</span>
+        </a>
+    </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <a href="index.html" class="mbn-item" title="Home">
+            <i class="fas fa-house"></i>
+            <span class="mbn-label">Home</span>
+        </a>
+        <a href="service.html" class="mbn-item" title="Services">
+            <i class="fas fa-screwdriver-wrench"></i>
+            <span class="mbn-label">Services</span>
+        </a>
+        <a href="service.html" class="mbn-item mbn-center" title="Book Now">
+            <div class="mbn-center-bg"><i class="fas fa-calendar-check"></i></div>
+        </a>
+        <a href="track.html" class="mbn-item" title="Track">
+            <i class="fas fa-truck-fast"></i>
+            <span class="mbn-label">Track</span>
+        </a>
+        <a href="user-dashboard.html" class="mbn-item active" title="Account">
+            <i class="fas fa-circle-user"></i>
+            <span class="mbn-label">Account</span>
+        </a>
+    </nav>
+
+</body>
+
+</html>

@@ -1,0 +1,1919 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OneHive | Home Services Platform</title>
+    <!-- Plus Jakarta Sans for premium SaaS typography -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="mobile-nav.css">
+
+
+    <!-- Supabase SDK Integration -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="supabase-init.js"></script>
+
+    <!-- Multi-Language & Theme Support -->
+    <script src="translations.js"></script>
+    <script src="i18n.js"></script>
+    <script src="theme.js"></script>
+
+    <style>
+        :root {
+            --bg-base: #050b14;
+            --bg-gradient: radial-gradient(circle at 80% -20%, rgba(37, 99, 235, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 20% 100%, rgba(37, 99, 235, 0.05) 0%, transparent 40%);
+            --text-primary: #FFFFFF;
+            --text-secondary: #9CA3AF;
+            --accent: #3B82F6;
+            --accent-hover: #2563EB;
+            --surface: rgba(255, 255, 255, 0.03);
+            --surface-glass: rgba(15, 23, 42, 0.7);
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --radius-pill: 9999px;
+            --radius-lg: 16px;
+            --footer-bg: #02040a;
+        }
+
+        [data-theme="light"] {
+            --bg-base: #F8FAFC;
+            --bg-gradient: radial-gradient(circle at 80% -20%, rgba(241, 112, 36, 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 20% 100%, rgba(241, 112, 36, 0.05) 0%, transparent 40%);
+            --text-primary: #0F172A;
+            --text-secondary: #475569;
+            --surface: rgba(0, 0, 0, 0.02);
+            --surface-glass: rgba(255, 255, 255, 0.8);
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --accent: #2563EB;
+            --accent-hover: #1D4ED8;
+            --footer-bg: #f1f5f9;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        html,
+        body {
+            overflow-x: hidden;
+            width: 100%;
+            position: relative;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: var(--bg-gradient);
+            background-attachment: fixed;
+            background-size: cover;
+            background-repeat: no-repeat;
+            color: var(--text-primary);
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            min-height: 100vh;
+            line-height: 1.5;
+        }
+
+        /* --- NAVIGATION --- */
+        nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 40px;
+            max-width: 1440px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 100;
+        }
+
+        .nav-logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--text-primary);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-logo-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            background: white;
+            padding: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .nav-logo-icon img {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 4px;
+        }
+
+        .nav-center-pill {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-pill);
+            padding: 6px 6px;
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-center-pill a {
+            color: var(--text-secondary);
+            font-size: 13px;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: var(--radius-pill);
+            transition: 0.3s;
+        }
+
+        .nav-center-pill a:hover,
+        .nav-center-pill a.active {
+            color: var(--text-primary);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+        }
+
+        /* --- CUSTOM NAVBAR SELECT --- */
+        .location-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            padding: 0 16px;
+            border-right: 1px solid var(--border-subtle);
+        }
+
+        .location-wrapper i {
+            color: var(--accent);
+        }
+
+        .nav-location-select {
+            position: relative;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .nav-location-trigger {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-location-trigger::after {
+            content: '\f078';
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            font-size: 10px;
+            color: var(--text-secondary);
+            margin-left: 4px;
+            transition: 0.3s;
+        }
+
+        .nav-location-select.open .nav-location-trigger::after {
+            transform: rotate(180deg);
+        }
+
+        .nav-location-options {
+            position: absolute;
+            top: calc(100% + 12px);
+            left: 50%;
+            transform: translateX(-50%) translateY(-10px);
+            background: var(--surface-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 6px;
+            list-style: none;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: 0.3s;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            min-width: 120px;
+        }
+
+        .nav-location-select.open .nav-location-options {
+            opacity: 1;
+            visibility: visible;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .nav-location-option {
+            padding: 8px 16px;
+            font-size: 13px;
+            color: var(--text-secondary);
+            border-radius: 8px;
+            white-space: nowrap;
+            transition: 0.2s;
+            text-align: left;
+        }
+
+        .nav-location-option:hover {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--text-primary);
+        }
+
+        #citySelector {
+            display: none;
+        }
+
+        .detect-btn {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-subtle);
+            padding: 4px 12px;
+            border-radius: var(--radius-pill);
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .detect-btn.loading {
+            background: rgba(255, 255, 255, 0.1);
+            cursor: wait;
+        }
+
+        .detect-btn:hover {
+            color: var(--text-primary);
+            border-color: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .login-link {
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .login-link:hover {
+            color: var(--text-secondary);
+        }
+
+        .cta-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border: 1px solid var(--border-subtle);
+            padding: 8px 16px 8px 20px;
+            border-radius: var(--radius-pill);
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: 0.3s;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .cta-btn-icon {
+            font-size: 10px;
+            background: var(--text-primary);
+            color: var(--bg-base);
+            width: 24px;
+            height: 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+        }
+
+        .cta-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .nav-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1.5px solid rgba(255, 255, 255, 0.3);
+            flex-shrink: 0;
+        }
+
+        /* --- HERO SECTION --- */
+        .hero {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding: 20px 40px 100px;
+            gap: 60px;
+            max-width: 1440px;
+            margin: 0 auto;
+            align-items: center;
+            min-height: 80vh;
+            position: relative;
+            z-index: 50;
+        }
+
+        .hero-left {
+            max-width: 600px;
+            animation: fadeUp 0.8s ease-out forwards;
+        }
+
+        .hero-left h1 {
+            font-size: clamp(3.5rem, 5vw, 5.5rem);
+            line-height: 1.05;
+            font-weight: 500;
+            letter-spacing: -0.03em;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+
+        .hero-left p {
+            font-size: 16px;
+            color: var(--text-secondary);
+            line-height: 1.6;
+            font-weight: 400;
+            max-width: 500px;
+        }
+
+        /* Premium AI Search Component */
+        .ai-search-wrapper {
+            position: relative;
+            margin-top: 48px;
+            width: fit-content;
+            z-index: 50;
+        }
+
+        .ai-search-box {
+            display: flex;
+            align-items: center;
+            background: var(--surface);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 6px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            transition: 0.3s border-color, 0.3s box-shadow;
+            position: relative;
+            z-index: 10;
+        }
+
+        .ai-search-box:focus-within {
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5), 0 0 0 4px rgba(59, 130, 246, 0.1);
+        }
+
+        .ai-badge {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--text-secondary);
+            font-size: 11px;
+            font-weight: 600;
+            padding: 6px 8px;
+            border-radius: 6px;
+            margin-left: 6px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            letter-spacing: 0.5px;
+        }
+
+        .ai-search-box input {
+            background: transparent;
+            border: none;
+            color: var(--text-primary);
+            padding: 0 16px;
+            width: 280px;
+            font-size: 15px;
+            outline: none;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        /* --- MODERN GLOBAL SCROLLBAR --- */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-base);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--accent), var(--accent-hover));
+            border-radius: 10px;
+            border: 2px solid var(--bg-base);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
+        }
+
+        /* --- PREMIUM FOOTER STYLES --- */
+        .premium-footer {
+            background: var(--footer-bg);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 80px 40px 40px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text-secondary);
+            margin-top: 40px;
+            /* Space from the grid */
+        }
+
+        .footer-container {
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        .footer-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-bottom: 80px;
+        }
+
+        .footer-col h4 {
+            color: var(--text-primary);
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 24px;
+        }
+
+        .footer-nav {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-nav li {
+            margin-bottom: 12px;
+        }
+
+        .footer-nav a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 13px;
+            transition: 0.3s;
+        }
+
+        .footer-nav a:hover {
+            color: var(--text-primary);
+        }
+
+        .footer-bottom {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding-top: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer-logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--accent);
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .footer-logo img {
+            height: 32px;
+            border-radius: 8px;
+        }
+
+        .footer-tagline {
+            font-size: 14px;
+            max-width: 550px;
+            margin-bottom: 24px;
+            line-height: 1.6;
+        }
+
+        .footer-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .footer-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .footer-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .footer-copyright {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.4);
+            margin-top: 20px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .footer-copyright {
+                flex-direction: column;
+                justify-content: center;
+            }
+
+            .hero-right {
+                display: none;
+                /* Hide 3D asset on mobile */
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-base);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--accent), var(--accent-hover));
+            border-radius: 10px;
+            border: 2px solid var(--bg-base);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-hover);
+        }
+
+        .ai-search-box input::placeholder {
+            color: #4B5563;
+        }
+
+        .btn-test-ai {
+            background: var(--accent);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: 0.3s ease;
+        }
+
+        .btn-test-ai i {
+            background: rgba(255, 255, 255, 0.2);
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 10px;
+        }
+
+        .btn-test-ai:hover {
+            background: var(--accent-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Suggestions Dropdown */
+        .suggestions-list {
+            position: absolute;
+            top: calc(100% + 8px);
+            left: 0;
+            width: 100%;
+            background: var(--surface-glass);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 20;
+            padding: 8px 0;
+        }
+
+        .suggestion-item {
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .suggestion-item i {
+            color: var(--accent);
+            font-size: 12px;
+            opacity: 0;
+            transition: 0.2s;
+            transform: translateX(-5px);
+        }
+
+        .suggestion-item:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-primary);
+        }
+
+        .suggestion-item:hover i {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        /* Hero Right Area */
+        .hero-right {
+            position: relative;
+            height: 600px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeUp 1s ease-out forwards 0.2s;
+            opacity: 0;
+        }
+
+        .hero-glow {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: rgba(59, 130, 246, 0.2);
+            filter: blur(100px);
+            border-radius: 50%;
+            z-index: 0;
+            animation: pulseGlow 4s infinite alternate;
+        }
+
+        .hero-mesh {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            z-index: 1;
+            position: relative;
+            filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.5));
+            border-radius: 24px;
+        }
+
+        /* --- CONTINUOUS HERO ANIMATIONS --- */
+        .floating-ui-card {
+            position: absolute;
+            background: var(--surface-glass);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-subtle);
+            padding: 16px 20px;
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            z-index: 5;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            animation: floatContinuous 6s infinite ease-in-out;
+            pointer-events: none;
+            will-change: transform;
+        }
+
+        .floating-ui-card i {
+            width: 36px;
+            height: 36px;
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--accent);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+        }
+
+        .card-info span {
+            display: block;
+            font-size: 11px;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-info strong {
+            display: block;
+            font-size: 14px;
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        /* Position variations */
+        .ui-1 {
+            top: 15%;
+            right: 10%;
+            animation-delay: 0s;
+        }
+
+        .ui-2 {
+            bottom: 20%;
+            left: 5%;
+            animation-delay: -2s;
+            animation-duration: 7s;
+        }
+
+        .ui-3 {
+            top: 45%;
+            left: -10%;
+            animation-delay: -4s;
+            animation-duration: 8s;
+        }
+
+        @keyframes floatContinuous {
+
+            0%,
+            100% {
+                transform: translateY(0) translateX(0);
+            }
+
+            33% {
+                transform: translateY(-15px) translateX(5px);
+            }
+
+            66% {
+                transform: translateY(5px) translateX(-5px);
+            }
+        }
+
+        /* Pulsing accent light */
+        .floating-ui-card::after {
+            content: '';
+            position: absolute;
+            inset: -1px;
+            border-radius: 16px;
+            padding: 1px;
+            background: linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.3), transparent);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            animation: borderPulse 4s infinite alternate;
+        }
+
+        @keyframes borderPulse {
+            from {
+                opacity: 0.3;
+            }
+
+            to {
+                opacity: 0.8;
+            }
+        }
+
+        /* --- TRUST / PROOF SECTION --- */
+        .trust-section {
+            background: var(--bg-base);
+            /* Darker bottom base */
+            padding: 80px 40px;
+            margin-top: -40px;
+            border-top: 1px solid var(--border-subtle);
+            position: relative;
+            z-index: 5;
+        }
+
+        .trust-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1440px;
+            margin: 0 auto;
+            gap: 60px;
+        }
+
+        .quote-block {
+            max-width: 400px;
+        }
+
+        .quote-block h2 {
+            font-size: clamp(2rem, 3vw, 3rem);
+            font-weight: 300;
+            font-style: italic;
+            letter-spacing: -0.02em;
+            margin-bottom: 24px;
+            color: var(--text-primary);
+        }
+
+        .author-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .author-box img {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid var(--border-subtle);
+            object-fit: cover;
+        }
+
+        .author-info strong {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .author-info span {
+            display: block;
+            font-size: 12px;
+            color: var(--text-secondary);
+        }
+
+        .logos-grid {
+            display: flex;
+            gap: 16px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            flex: 1;
+        }
+
+        .logo-box {
+            border: 1px solid var(--border-subtle);
+            background: rgba(255, 255, 255, 0.01);
+            border-radius: 12px;
+            padding: 24px 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-secondary);
+            font-weight: 700;
+            font-size: 18px;
+            letter-spacing: -0.5px;
+            transition: 0.3s;
+        }
+
+        .logo-box:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            background: rgba(255, 255, 255, 0.03);
+            transform: translateY(-2px);
+        }
+
+        .logo-box i {
+            margin-right: 8px;
+            font-size: 16px;
+        }
+
+        /* --- SERVICES GRID --- */
+        .services-header {
+            max-width: 1440px;
+            margin: 100px auto 40px;
+            padding: 0 40px;
+            text-align: center;
+        }
+
+        .services-header h3 {
+            font-size: 32px;
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            margin-bottom: 12px;
+        }
+
+        .services-header p {
+            color: var(--text-secondary);
+            font-size: 15px;
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 24px;
+            padding: 0 40px 100px;
+            max-width: 1440px;
+            margin: 0 auto;
+        }
+
+        .service-card {
+            background: rgba(255, 255, 255, 0.015);
+            border: 1px solid var(--border-subtle);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            transition: 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            text-decoration: none;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .service-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.1) 0%, transparent 100%);
+            opacity: 0;
+            transition: 0.4s;
+        }
+
+        .service-card:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            transform: translateY(-6px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5), 0 0 40px rgba(59, 130, 246, 0.1);
+        }
+
+        .service-card:hover::before {
+            opacity: 1;
+        }
+
+        .service-icon {
+            color: var(--accent);
+            font-size: 24px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 2;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(59, 130, 246, 0.1);
+            border-radius: 12px;
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+
+        .service-card h4 {
+            color: var(--text-primary);
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            position: relative;
+            z-index: 2;
+            letter-spacing: -0.5px;
+        }
+
+        .service-card p {
+            color: var(--text-secondary);
+            font-size: 14px;
+            position: relative;
+            z-index: 2;
+            line-height: 1.5;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulseGlow {
+            from {
+                opacity: 0.5;
+                transform: scale(1);
+            }
+
+            to {
+                opacity: 0.8;
+                transform: scale(1.1);
+            }
+        }
+
+        .hamburger,
+        .mobile-menu {
+            display: none;
+        }
+
+        @media (max-width: 1199px) {
+            nav {
+                padding: 8px 40px;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                background: var(--surface-glass);
+                backdrop-filter: blur(12px);
+                -webkit-backdrop-filter: blur(12px);
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                z-index: 1000;
+                border-bottom: 1px solid var(--border-subtle);
+                transition: 0.3s;
+            }
+
+            .hamburger {
+                display: none;
+            }
+
+            .hero {
+                padding: 40px 20px;
+            }
+
+            /* Hamburger Menu */
+            .hamburger {
+                display: flex;
+                flex-direction: column;
+                gap: 6px;
+                cursor: pointer;
+                z-index: 1001;
+                padding: 10px;
+                border: 1px solid var(--border-subtle);
+                border-radius: 12px;
+                background: var(--surface-glass);
+            }
+
+            .hamburger span {
+                display: block;
+                width: 24px;
+                height: 2px;
+                background: var(--text-primary);
+                transition: 0.3s;
+                border-radius: 2px;
+            }
+
+            .hamburger.active span:nth-child(1) {
+                transform: rotate(45deg) translate(6px, 6px);
+            }
+
+            .hamburger.active span:nth-child(2) {
+                opacity: 0;
+            }
+
+            .hamburger.active span:nth-child(3) {
+                transform: rotate(-45deg) translate(5px, -5px);
+            }
+
+            /* Mobile Menu Overlay */
+            .mobile-menu {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 100%;
+                height: 100vh;
+                background: var(--bg-base);
+                backdrop-filter: blur(20px);
+                -webkit-backdrop-filter: blur(20px);
+                z-index: 1000;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 24px;
+                transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+                padding: 40px;
+            }
+
+            .mobile-menu.active {
+                right: 0;
+            }
+
+            .mobile-menu a {
+                font-size: 24px;
+                font-weight: 700;
+                color: var(--text-primary);
+                text-decoration: none;
+                transition: 0.3s;
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            .mobile-menu.active a {
+                opacity: 1;
+                transform: translateY(0);
+                transition-delay: 0.2s;
+            }
+
+            .mobile-menu .menu-toggles {
+                display: flex;
+                gap: 20px;
+                margin-top: 20px;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: 0.3s;
+            }
+
+            .mobile-menu.active .menu-toggles {
+                opacity: 1;
+                transform: translateY(0);
+                transition-delay: 0.5s;
+            }
+
+            .menu-toggle-btn {
+                width: 56px;
+                height: 56px;
+                border-radius: 16px;
+                background: var(--surface);
+                border: 1px solid var(--border-subtle);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--text-primary);
+                font-size: 20px;
+                cursor: pointer;
+            }
+
+            .nav-right {
+                display: none !important;
+            }
+
+            .nav-center-pill {
+                padding: 4px;
+                gap: 2px;
+            }
+
+            .nav-center-pill a {
+                padding: 6px 12px;
+                font-size: 12px;
+            }
+
+            .location-wrapper {
+                padding: 0 10px;
+            }
+
+            .hero {
+                padding: 60px 24px;
+                gap: 40px;
+            }
+
+            .hero-left h1 {
+                font-size: clamp(2.5rem, 4vw, 4rem);
+            }
+
+            .trust-section {
+                padding: 60px 24px;
+            }
+
+            .trust-container {
+                flex-direction: column;
+                text-align: center;
+                gap: 40px;
+            }
+
+            .quote-block {
+                max-width: 100%;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .logos-grid {
+                justify-content: center;
+                width: 100%;
+            }
+        }
+
+        @media (max-width: 768px) {
+            nav {
+                padding: 12px 20px;
+                flex-wrap: wrap;
+                justify-content: space-between;
+            }
+
+            .nav-center-pill {
+                display: none;
+            }
+
+            .nav-logo {
+                margin-left: -16px !important;
+            }
+
+            .nav-logo img {
+                height: 80px !important;
+            }
+
+            .nav-right {
+                gap: 12px;
+            }
+
+            .location-wrapper {
+                display: none;
+            }
+
+            .hero {
+                grid-template-columns: 1fr;
+                text-align: center;
+                padding: 40px 20px;
+                min-height: auto;
+            }
+
+            .hero-left {
+                margin: 0 auto;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .hero-left h1 {
+                font-size: 2.2rem;
+            }
+
+            .hero-left p {
+                margin: 0 auto;
+            }
+
+            .hero-right {
+                display: none;
+            }
+
+            .ai-search-wrapper {
+                width: 100%;
+                max-width: 100%;
+            }
+
+            .ai-search-box {
+                flex-direction: column;
+                background: transparent;
+                border: none;
+                box-shadow: none;
+                padding: 0;
+                gap: 12px;
+                width: 100%;
+            }
+
+            .ai-badge {
+                display: none;
+            }
+
+            .ai-search-box input {
+                width: 100% !important;
+                background: var(--surface);
+                border: 1px solid var(--border-subtle);
+                border-radius: 12px;
+                padding: 16px !important;
+                margin: 0;
+            }
+
+            .btn-test-ai {
+                width: 100%;
+                justify-content: center;
+                padding: 16px;
+            }
+
+            .services-header {
+                margin: 60px auto 30px;
+                padding: 0 20px;
+            }
+
+            .services-grid {
+                padding: 0 20px 60px;
+                grid-template-columns: 1fr;
+            }
+
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+                text-align: center;
+            }
+
+            .footer-nav {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .footer-bottom {
+                padding-top: 32px;
+            }
+
+            .footer-copyright {
+                flex-direction: column;
+                gap: 12px;
+            }
+        }
+
+        /* ========================================= */
+        /* NATIVE APP RESPONSIVE FRAMEWORK (< 768px) */
+        /* ========================================= */
+        .mobile-drawer,
+        .mobile-drawer-overlay {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-top: 72px;
+                /* Offset for fixed mobile navbar */
+            }
+
+            /* Touch Target Optimization */
+            button,
+            input,
+            select,
+            .footer-btn,
+            .cta-btn,
+            .nav-location-select {
+                min-height: 48px;
+                font-size: 16px !important;
+            }
+
+            /* Standardized Padding */
+            section,
+            .dashboard-container,
+            .hero {
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+            }
+
+            /* Convert Grids to Vertical Stack */
+            .hero,
+            .stats-grid,
+            .footer-grid,
+            .grid-container,
+            .services-grid,
+            .trust-container {
+                grid-template-columns: 1fr !important;
+                gap: 20px !important;
+            }
+
+            /* App-Style Drawer Menu */
+            .mobile-drawer {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 80%;
+                max-width: 320px;
+                height: 100vh;
+                background: var(--bg-base);
+                z-index: 9999;
+                transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                display: flex;
+                flex-direction: column;
+                box-shadow: -10px 0 40px rgba(0, 0, 0, 0.5);
+            }
+
+            .mobile-drawer.open {
+                right: 0;
+            }
+
+            .mobile-drawer-overlay {
+                position: fixed;
+                inset: 0;
+                background: rgba(0, 0, 0, 0.6);
+                z-index: 9998;
+                opacity: 0;
+                pointer-events: none;
+                transition: 0.3s;
+                display: block;
+            }
+
+            .mobile-drawer-overlay.show {
+                opacity: 1;
+                pointer-events: auto;
+            }
+
+            .drawer-link {
+                font-size: 18px;
+                font-weight: 600;
+                color: var(--text-primary);
+                text-decoration: none;
+                padding: 12px 0;
+                border-bottom: 1px solid var(--border-subtle);
+                display: block;
+            }
+
+            .drawer-link:active {
+                opacity: 0.7;
+            }
+        }
+
+        /* Mobile Bottom Navigation handled by mobile-nav.css */
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <a href="index.html" class="nav-logo" style="gap: 0; margin-left: -32px;">
+            <img src="One_Hive.png" alt="OneHive"
+                style="height: 120px; width: auto; filter: drop-shadow(0px 0px 12px rgba(255, 255, 255, 0.15));"
+                onerror="this.style.display='none'">
+        </a>
+
+        <div class="nav-center-pill">
+            <div class="location-wrapper">
+                <i class="fas fa-map-marker-alt"></i>
+                <div class="nav-location-select" id="navLocSelect" onclick="toggleNavLocation()">
+                    <span class="nav-location-trigger" id="cityDisplay">Location</span>
+                    <ul class="nav-location-options">
+                        <li class="nav-location-option" onclick="selectNavCity('Agra')">Agra</li>
+                        <li class="nav-location-option" onclick="selectNavCity('Delhi')">Delhi</li>
+                        <li class="nav-location-option" onclick="selectNavCity('Jaipur')">Jaipur</li>
+                        <li class="nav-location-option" onclick="selectNavCity('Mumbai')">Mumbai</li>
+                    </ul>
+                </div>
+                <select id="citySelector">
+                    <option value="Agra">Agra</option>
+                    <option value="Delhi">Delhi</option>
+                    <option value="Jaipur">Jaipur</option>
+                    <option value="Mumbai">Mumbai</option>
+                </select>
+                <button class="detect-btn" id="navLocBtn" onclick="detectNavLocation()"><i class="fas fa-location-arrow"
+                        id="navLocIcon"></i> Detect</button>
+            </div>
+            <a href="service.html" data-i18n="nav-services">Services</a>
+            <a href="track.html" data-i18n="nav-track">Track Order</a>
+            <a href="worker-register.html" data-i18n="nav-partner">Become a Partner</a>
+        </div>
+
+        <div class="nav-right" id="navAuth">
+            <!-- Language Switcher & Theme Toggle -->
+            <div class="location-wrapper" style="border-right: none; padding-right: 0; gap: 4px;">
+                <div class="nav-location-select" onclick="window.toggleTheme()" style="padding: 0 12px;">
+                    <i class="fas fa-sun theme-sun"></i>
+                    <i class="fas fa-moon theme-moon"></i>
+                </div>
+                <i class="fas fa-language" style="font-size: 18px; margin-left: 8px;"></i>
+                <div class="nav-location-select" onclick="window.toggleLanguage()">
+                    <span class="nav-location-trigger" id="langSwitcherTrigger">EN</span>
+                </div>
+            </div>
+
+
+            <a href="javascript:void(0)" onclick="checkAuth('service.html')" class="cta-btn"
+                data-i18n="nav-get-started">Get started <i class="fas fa-arrow-right cta-btn-icon"></i></a>
+        </div>
+
+        <div class="hamburger" id="hamburgerMenu" onclick="toggleDrawer()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+    </nav>
+
+    <!-- Native App Mobile Drawer -->
+    <div class="mobile-drawer-overlay" id="mobileDrawerOverlay" onclick="toggleDrawer()"></div>
+    <div class="mobile-drawer" id="mobileDrawer">
+        <div
+            style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 1px solid var(--border-subtle);">
+            <span class="nav-logo" style="margin: 0;">OneHive</span>
+            <button onclick="toggleDrawer()"
+                style="background: none; border: none; color: var(--text-primary); font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; width: 48px; height: 48px;"><i
+                    class="fas fa-times"></i></button>
+        </div>
+        <div style="display: flex; flex-direction: column; padding: 20px;">
+            <a href="index.html" class="drawer-link">Home</a>
+            <a href="service.html" class="drawer-link" data-i18n="nav-services">Services</a>
+            <a href="track.html" class="drawer-link" data-i18n="nav-track">Track Order</a>
+            <a href="worker-register.html" class="drawer-link" data-i18n="nav-partner">Become a Partner</a>
+            <a href="login.html" class="drawer-link" data-i18n="nav-login">Login</a>
+
+            <div style="display: flex; gap: 20px; margin-top: 40px;">
+                <div onclick="window.toggleTheme()"
+                    style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 18px; height: 48px; padding: 0 16px; background: var(--surface); border-radius: 12px;">
+                    <i class="fas fa-sun theme-sun"></i>
+                    <i class="fas fa-moon theme-moon"></i>
+                </div>
+                <div onclick="window.toggleLanguage()"
+                    style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 18px; height: 48px; padding: 0 16px; background: var(--surface); border-radius: 12px;">
+                    <i class="fas fa-language"></i>
+                    <span style="font-size: 14px; font-weight: 700;">EN</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="hero">
+        <div class="hero-left">
+            <h1 data-i18n="hero-title">Experience the<br>Comfort of Home.<br>Guaranteed.</h1>
+            <p data-i18n="hero-subtitle">Reliable. Professional. It's why we exist. Discover why thousands choose
+                OneHive for guaranteed,
+                high-quality home services verified by experts. You won't go back.</p>
+
+            <div class="ai-search-wrapper">
+                <div class="ai-search-box">
+                    <span class="ai-badge"><i class="fas fa-sparkles"></i> AI</span>
+                    <input type="text" id="searchInput" placeholder="Search for AC Repair, Deep Cleaning..."
+                        data-i18n="search-placeholder" onfocus="showSuggestions()" onclick="showSuggestions()"
+                        onkeyup="showSuggestions()" onkeypress="handleEnter(event)" autocomplete="off">
+                    <button class="btn-test-ai" onclick="performSearch()"><span data-i18n="find-expert">Find
+                            Expert</span> <i class="fas fa-arrow-right"></i></button>
+                </div>
+                <div id="suggestionsBox" class="suggestions-list"></div>
+            </div>
+        </div>
+
+        <div class="hero-right">
+            <div class="hero-glow"></div>
+            <div id="heroAssetContainer" style="width:100%; height:100%; z-index:1; position:relative;">
+                <img src="https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?q=80&w=1200&auto=format&fit=crop"
+                    class="hero-mesh" id="heroMesh" alt="Premium Abstract Visualization">
+            </div>
+
+            <!-- Continuous Animated UI Nodes -->
+            <div class="floating-ui-card ui-1">
+                <i class="fas fa-shield-halved"></i>
+                <div class="card-info">
+                    <span data-i18n="card-safety">Safety First</span>
+                    <strong data-i18n="card-verified">Verified Partner</strong>
+                </div>
+            </div>
+
+            <div class="floating-ui-card ui-2">
+                <i class="fas fa-truck-fast"></i>
+                <div class="card-info">
+                    <span data-i18n="card-tracking">Live Tracking</span>
+                    <strong data-i18n="card-expert">Expert En Route</strong>
+                </div>
+            </div>
+
+            <div class="floating-ui-card ui-3">
+                <i class="fas fa-certificate"></i>
+                <div class="card-info">
+                    <span data-i18n="card-quality">Service Quality</span>
+                    <strong data-i18n="card-guaranteed">100% Guaranteed</strong>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="trust-section">
+        <div class="trust-container">
+            <div class="quote-block">
+                <h2 data-i18n="trust-quote">"Amazing service!"</h2>
+                <div class="author-box">
+                    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=200&auto=format&fit=crop"
+                        alt="Reviewer">
+                    <div class="author-info">
+                        <strong>Rajiv Mehta</strong>
+                        <span data-i18n="trust-owner">Home Owner</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="logos-grid">
+                <div class="logo-box"><i class="fas fa-shield-alt"></i> <span data-i18n="trust-verified">Verified</span>
+                </div>
+                <div class="logo-box"><i class="fas fa-bolt"></i> <span data-i18n="trust-fast">Fast Access</span></div>
+                <div class="logo-box"><i class="fas fa-check-double"></i> <span data-i18n="trust-quality">Quality
+                        First</span></div>
+                <div class="logo-box" style="color: var(--text-primary);"><i class="fas fa-circle"
+                        style="font-size:10px;"></i> <span data-i18n="trust-premium">premium</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="services-header">
+        <h3 data-i18n="services-title">Our Services</h3>
+        <p data-i18n="services-subtitle">Quality home services at your doorstep.</p>
+    </div>
+
+    <div class="services-grid">
+        <div onclick="checkAuth('service.html?service=Electrician')" class="service-card" style="cursor:pointer">
+            <div class="service-icon"><i class="fas fa-bolt"></i></div>
+            <h4 data-i18n="service-electrician">Electrician</h4>
+            <p data-i18n="service-electrician-desc">Wiring, fan repair, and light fitting done by experts.</p>
+        </div>
+        <div onclick="checkAuth('service.html?service=Plumber')" class="service-card" style="cursor:pointer">
+            <div class="service-icon"><i class="fas fa-faucet"></i></div>
+            <h4 data-i18n="service-plumber">Plumber</h4>
+            <p data-i18n="service-plumber-desc">Fixing leaks, pipes, and all plumbing issues.</p>
+        </div>
+        <div onclick="checkAuth('service.html?service=AC Repair')" class="service-card" style="cursor:pointer">
+            <div class="service-icon"><i class="fas fa-snowflake"></i></div>
+            <h4 data-i18n="service-ac">AC Repair</h4>
+            <p data-i18n="service-ac-desc">AC servicing, gas refilling, and deep cleaning.</p>
+        </div>
+        <div onclick="checkAuth('service.html?service=Cleaning')" class="service-card" style="cursor:pointer">
+            <div class="service-icon"><i class="fas fa-broom"></i></div>
+            <h4 data-i18n="service-cleaning">Cleaning</h4>
+            <p data-i18n="service-cleaning-desc">Full home cleaning, sofa, and bathroom cleaning.</p>
+        </div>
+        <div onclick="checkAuth('service.html?service=Painter')" class="service-card" style="cursor:pointer">
+            <div class="service-icon"><i class="fas fa-paint-roller"></i></div>
+            <h4 data-i18n="service-painter">Painter</h4>
+            <p data-i18n="service-painter-desc">Full wall painting, texture designs, and home touchups.</p>
+        </div>
+        <div onclick="checkAuth('service.html?service=Appliances')" class="service-card" style="cursor:pointer">
+            <div class="service-icon"><i class="fas fa-tv"></i></div>
+            <h4 data-i18n="service-appliances">Appliances</h4>
+            <p data-i18n="service-appliances-desc">Repair for fridge, washing machine, and other appliances.</p>
+        </div>
+        <div onclick="checkAuth('service.html?service=Carpenter')" class="service-card" style="cursor:pointer">
+            <div class="service-icon"><i class="fas fa-hammer"></i></div>
+            <h4 data-i18n="service-carpenter">Carpenter</h4>
+            <p data-i18n="service-carpenter-desc">Furniture making, repair, and door fitting.</p>
+        </div>
+        <div onclick="checkAuth('service.html?service=Gardening')" class="service-card" style="cursor:pointer">
+            <div class="service-icon"><i class="fas fa-leaf"></i></div>
+            <h4 data-i18n="service-gardening">Gardening</h4>
+            <p data-i18n="service-gardening-desc">Lawn cutting, planting, and plant care.</p>
+        </div>
+    </div>
+
+
+    <footer class="premium-footer">
+        <div class="footer-container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4 data-i18n="footer-services">Services</h4>
+                    <ul class="footer-nav">
+                        <li><a href="service.html?service=Electrician" data-i18n="service-electrician">Electrician</a>
+                        </li>
+                        <li><a href="service.html?service=Plumber" data-i18n="service-plumber">Plumber</a></li>
+                        <li><a href="service.html?service=Cleaning" data-i18n="service-cleaning">Deep Cleaning</a></li>
+                        <li><a href="service.html?service=AC Repair" data-i18n="service-ac">AC Repair & Service</a></li>
+                        <li><a href="service.html?service=Painter" data-i18n="service-painter">Home Painting</a></li>
+                        <li><a href="service.html?service=Carpenter" data-i18n="service-carpenter">Carpentry</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 data-i18n="footer-platform">Platform</h4>
+                    <ul class="footer-nav">
+                        <li><a href="#" data-i18n="footer-about">About OneHive</a></li>
+                        <li><a href="worker-register.html" data-i18n="nav-partner">Become a Partner</a></li>
+                        <li><a href="track.html" data-i18n="nav-track">Track Order</a></li>
+                        <li><a href="login.html" data-i18n="nav-login">Customer Login</a></li>
+                        <li><a href="#" data-i18n="footer-pricing">Pricing Guide</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 data-i18n="footer-support">Support</h4>
+                    <ul class="footer-nav">
+                        <li><a href="#" data-i18n="footer-help">Help Center</a></li>
+                        <li><a href="#" data-i18n="footer-safety">Trust & Safety</a></li>
+                        <li><a href="#" data-i18n="footer-guarantee">Quality Guarantee</a></li>
+                        <li><a href="#" data-i18n="footer-contact">Contact Us</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 data-i18n="footer-legal">Legal</h4>
+                    <ul class="footer-nav">
+                        <li><a href="#" data-i18n="footer-terms">Terms of Service</a></li>
+                        <li><a href="#" data-i18n="footer-privacy">Privacy Policy</a></li>
+                        <li><a href="#" data-i18n="footer-cancellation">Cancellation Policy</a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="footer-bottom">
+                <div class="footer-logo">
+                    <img src="https://ui-avatars.com/api/?name=OH&background=3B82F6&color=fff&rounded=true&bold=true"
+                        alt="OneHive Logo">
+                    OneHive
+                </div>
+                <p class="footer-tagline" data-i18n="footer-tagline">
+                    Create a better home in minutes with AI-matched service partners. Perfect for urgent repairs,
+                    regular maintenance, and guaranteed quality.
+                </p>
+
+                <div class="footer-copyright">
+                    <span data-i18n="footer-rights">© 2026 OneHive Platform. All rights reserved.</span>
+                    <div style="display:flex; gap:16px;">
+                        <a href="#" style="color:rgba(255,255,255,0.4);"><i class="fab fa-twitter"></i></a>
+                        <a href="#" style="color:rgba(255,255,255,0.4);"><i class="fab fa-instagram"></i></a>
+                        <a href="#" style="color:rgba(255,255,255,0.4);"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+
+    <script>
+        function toggleDrawer() {
+            const drawer = document.getElementById('mobileDrawer');
+            const overlay = document.getElementById('mobileDrawerOverlay');
+            const hamburger = document.getElementById('hamburgerMenu');
+
+            drawer.classList.toggle('open');
+            overlay.classList.toggle('show');
+            if (hamburger) hamburger.classList.toggle('active');
+
+            document.body.style.overflow = drawer.classList.contains('open') ? 'hidden' : '';
+        }
+
+        // --- CUSTOM NAV LOCATION SELECT ---
+        function toggleNavLocation() {
+            document.getElementById('navLocSelect').classList.toggle('open');
+        }
+
+        function selectNavCity(city) {
+            document.getElementById('cityDisplay').innerText = city;
+            const sel = document.getElementById('citySelector');
+            if (sel) sel.value = city;
+            localStorage.setItem('currentCity', city);
+            document.getElementById('navLocSelect').classList.remove('open');
+        }
+
+        async function detectNavLocation() {
+            const btn = document.getElementById('navLocBtn');
+            const icon = document.getElementById('navLocIcon');
+            const display = document.getElementById('cityDisplay');
+
+            if (!btn || !icon) return;
+
+            btn.classList.add('loading');
+            icon.className = "fas fa-spinner fa-spin";
+
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(async (pos) => {
+                    try {
+                        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${pos.coords.latitude}&lon=${pos.coords.longitude}`);
+                        const data = await res.json();
+                        const city = data.address.city || data.address.town || data.address.village || "Agra";
+                        selectNavCity(city);
+                        icon.className = "fas fa-check";
+                    } catch (e) {
+                        display.innerText = "Error";
+                        icon.className = "fas fa-exclamation-triangle";
+                    } finally {
+                        btn.classList.remove('loading');
+                        setTimeout(() => { icon.className = "fas fa-location-arrow"; }, 2000);
+                    }
+                }, () => {
+                    alert("Location access denied.");
+                    btn.classList.remove('loading');
+                    icon.className = "fas fa-location-arrow";
+                });
+            } else {
+                alert("Geolocation not supported.");
+                btn.classList.remove('loading');
+                icon.className = "fas fa-location-arrow";
+            }
+        }
+
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('#navLocSelect')) {
+                document.getElementById('navLocSelect')?.classList.remove('open');
+            }
+        });
+
+        const keywords = ["Electrician", "Plumber", "Painter", "Carpenter", "AC Repair", "Appliances", "Cleaning", "Gardening", "Smart Home", "Security Setup"];
+
+        function showSuggestions() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let box = document.getElementById('suggestionsBox');
+            box.innerHTML = "";
+            let matches = input.length === 0 ? keywords : keywords.filter(word => word.toLowerCase().includes(input));
+
+            if (matches.length > 0) {
+                box.style.display = "flex";
+                matches.forEach(match => {
+                    let div = document.createElement("div"); div.className = "suggestion-item";
+                    div.innerHTML = `<i class="fas fa-search"></i> ${match}`;
+                    div.onclick = function () { document.getElementById('searchInput').value = match; box.style.display = "none"; performSearch(); };
+                    box.appendChild(div);
+                });
+            } else {
+                let div = document.createElement("div"); div.className = "suggestion-item";
+                div.innerHTML = `No operational vectors matched`;
+                box.appendChild(div);
+                box.style.display = "flex";
+            }
+        }
+
+        document.addEventListener('click', function (e) {
+            if (!e.target.closest('.ai-search-wrapper')) { document.getElementById('suggestionsBox').style.display = 'none'; }
+        });
+
+        function handleEnter(event) { if (event.key === "Enter") performSearch(); }
+
+        function performSearch() {
+            let rawInput = document.getElementById('searchInput').value;
+            let q = rawInput.toLowerCase();
+            let service = "";
+
+            if (q.includes("elect")) service = "Electrician";
+            else if (q.includes("plum") || q.includes("pipe")) service = "Plumber";
+            else if (q.includes("paint") || q.includes("coat")) service = "Painter";
+            else if (q.includes("carp") || q.includes("wood")) service = "Carpenter";
+            else if (q.includes("ac") || q.includes("hvac")) service = "AC Repair";
+            else if (q.includes("clean") || q.includes("steril")) service = "Cleaning";
+            else if (q.includes("garden") || q.includes("land")) service = "Gardening";
+            else if (q.includes("applianc") || q.includes("fridge")) service = "Appliances";
+            else if (rawInput.trim() !== "") service = rawInput;
+            else return;
+
+            checkAuth(`service.html?service=${service}`);
+        }
+
+        function checkAuth(dest) {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            if (isLoggedIn) {
+                window.location.href = dest;
+            } else {
+                alert("Please login to book services.");
+                window.location.href = "login.html?returnUrl=" + encodeURIComponent(dest);
+            }
+        }
+
+        // Dynamic Nav update — runs immediately since script is at bottom of body
+        (function updateNavAuth() {
+            const isLoggedIn = localStorage.getItem('isLoggedIn') === 'true';
+            const navAuth = document.getElementById('navAuth');
+            if (isLoggedIn && navAuth) {
+                const userName = localStorage.getItem('userName') || 'User';
+                const userAvatar = localStorage.getItem('currentUserAvatar');
+                const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(userName)}&background=3B82F6&color=fff`;
+                const avatarSrc = (userAvatar && userAvatar !== '') ? userAvatar : fallback;
+                navAuth.innerHTML = `
+                    <div class="location-wrapper" style="border-right: none; padding-right: 0; gap: 4px;">
+                        <div class="nav-location-select" onclick="window.toggleTheme()" style="padding: 0 12px;">
+                            <i class="fas fa-sun theme-sun"></i>
+                            <i class="fas fa-moon theme-moon"></i>
+                        </div>
+                        <i class="fas fa-language" style="font-size: 18px; margin-left: 8px;"></i>
+                        <div class="nav-location-select" onclick="window.toggleLanguage()">
+                            <span class="nav-location-trigger" id="langSwitcherTrigger">EN</span>
+                        </div>
+                    </div>
+                    <a href="user-dashboard.html" class="cta-btn" style="padding: 4px 6px 4px 20px; gap: 12px;">${userName} <img src="${avatarSrc}" class="nav-avatar"></a>
+                `;
+            }
+        })();
+
+        // Fetch dynamic hero image after full DOM is ready (needs supabaseClient)
+        document.addEventListener('DOMContentLoaded', loadHeroImage);
+
+        async function loadHeroImage() {
+            try {
+                const { data, error } = await window.supabaseClient.from('site_settings').select('value').eq('key', 'hero_image_url').single();
+                if (data && data.value) {
+                    const container = document.getElementById('heroAssetContainer');
+                    if (container) {
+                        if (data.value.startsWith('data:video') || data.value.endsWith('.mp4')) {
+                            container.innerHTML = `<video src="${data.value}" class="hero-mesh" id="heroMesh" autoplay muted loop style="width:100%; height:100%; object-fit:contain; filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.5)); border-radius: 24px;"></video>`;
+                        } else {
+                            container.innerHTML = `<img src="${data.value}" class="hero-mesh" id="heroMesh" alt="Premium Asset" style="width:100%; height:100%; object-fit:contain; filter: drop-shadow(0 30px 60px rgba(0, 0, 0, 0.5)); border-radius: 24px;">`;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("CMS: Falling back to default hero asset.");
+            }
+        }
+    </script>    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <a href="index.html" class="mbn-item active" title="Home">
+            <i class="fas fa-house"></i>
+            <span class="mbn-label">Home</span>
+        </a>
+        <a href="service.html" class="mbn-item" title="Services">
+            <i class="fas fa-screwdriver-wrench"></i>
+            <span class="mbn-label">Services</span>
+        </a>
+        <a href="service.html" class="mbn-item mbn-center" title="Book Now">
+            <div class="mbn-center-bg"><i class="fas fa-calendar-check"></i></div>
+        </a>
+        <a href="track.html" class="mbn-item" title="Track">
+            <i class="fas fa-truck-fast"></i>
+            <span class="mbn-label">Track</span>
+        </a>
+        <a href="user-dashboard.html" class="mbn-item" title="Account">
+            <i class="fas fa-circle-user"></i>
+            <span class="mbn-label">Account</span>
+        </a>
+    </nav>
+
+</body>
+
+</html>
