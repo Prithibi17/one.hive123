@@ -409,13 +409,10 @@ app.post('/api/send-email', async (req, res) => {
 // CATCH-ALL ROUTE (Safe for Serverless)
 // ==========================================
 app.use((req, res) => {
-    // Only try to send file if it exists, otherwise 404 JSON
-    const indexPath = path.join(__dirname, '..', '..', 'client', 'index.html');
-    if (fs.existsSync(indexPath)) {
-        res.sendFile(indexPath);
-    } else {
-        res.status(404).json({ error: 'API Endpoint not found. If you are looking for the frontend, go to Netlify.' });
-    }
+    res.status(404).json({ 
+        error: 'API Endpoint not found.',
+        message: 'This is a dedicated backend server. Please use the frontend URL on Netlify.'
+    });
 });
 
 // ==========================================
