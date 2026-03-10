@@ -1,23 +1,18 @@
-const config = require('./varsal.json');
-const cors = require('cors');
-const express = require('express');
-const { Pool } = require('pg');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const nodemailer = require('nodemailer');
-const path = require('path');
-const fs = require('fs');
-
 // ==========================================
-// CONFIGURATION (loaded from varsal.json)
+// CONFIGURATION
 // ==========================================
-const PORT = process.env.PORT || config.server.port;
-const DATABASE_URL = process.env.DATABASE_URL || config.database.url;
-const JWT_SECRET = process.env.JWT_SECRET || config.jwt.secret;
+let config = {};
+try {
+    config = require('./varsal.json');
+} catch (e) {
+    console.warn('varsal.json not found, relying on environment variables');
+}
 
-// Email Settings
-const EMAIL_USER = process.env.EMAIL_USER || config.email.user;
-const EMAIL_PASS = process.env.EMAIL_PASS || config.email.pass;
+const PORT = process.env.PORT || (config.server && config.server.port) || 3000;
+const DATABASE_URL = process.env.DATABASE_URL || (config.database && config.database.url);
+const JWT_SECRET = process.env.JWT_SECRET || (config.jwt && config.jwt.secret) || 'fallback-secret';
+const EMAIL_USER = process.env.EMAIL_USER || (config.email && config.email.user);
+const EMAIL_PASS = process.env.EMAIL_PASS || (config.email && config.email.pass);
 
 const app = express();
 
@@ -46,26 +41,47 @@ app.options('*', cors());
 // MIDDLEWARE
 // ==========================================
 app.use(express.json());
-// Serve static files (index.html, style.css, etc.)
-app.use(express.static(path.join(__dirname, '..', 'client')));
 
 // ==========================================
-// DATABASE CONNECTION
+// DATABASE CONNECTION (Lazy initialization)
 // ==========================================
-const pool = new Pool({
-    connectionString: DATABASE_URL,
-    ssl: (process.env.NODE_ENV || config.server.nodeEnv) === 'production' ? { rejectUnauthorized: false } : false
-});
+let pool;
+const getPool = () => {
+    if (!pool) {
+        if (!DATABASE_URL || DATABASE_URL.includes('REPLACE_WITH')) {
+            console.error('CRITICAL: DATABASE_URL is missing or using placeholder!');
+        }
+        pool = new Pool({
+            connectionString: DATABASE_URL,
+            ssl: (process.env.NODE_ENV === 'production' || (config.server && config.server.nodeEnv === 'production')) 
+                ? { rejectUnauthorized: false } 
+                : false
+        });
+    }
+    return pool;
+};
 
 // ==========================================
 // EMAIL TRANSPORTER
 // ==========================================
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // Keep Gmail service or whatever is appropriate
+    service: 'gmail',
     auth: {
         user: EMAIL_USER,
         pass: EMAIL_PASS
     }
+});
+
+// ==========================================
+// HEALTH CHECK
+// ==========================================
+app.get('/api/health', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV || 'development',
+        db_configured: !!DATABASE_URL && !DATABASE_URL.includes('REPLACE_WITH')
+    });
 });
 
 // ==========================================
@@ -98,7 +114,7 @@ app.post('/api/register', async (req, res) => {
         }
 
         // Check if user exists
-        const userCheck = await pool.query('SELECT * FROM public.users WHERE email = $1', [email.toLowerCase()]);
+        const userCheck = await getPool().query('SELECT * FROM public.users WHERE email = $1', [email.toLowerCase()]);
         if (userCheck.rows.length > 0) {
             return res.status(400).json({ error: 'Email already registered.' });
         }
@@ -108,7 +124,7 @@ app.post('/api/register', async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, salt);
 
         // Insert user
-        const newUser = await pool.query(
+        const newUser = await getPool().query(
             `INSERT INTO public.users (name, email, phone, alt_phone, address, password) 
              VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, name, email`,
             [name, email.toLowerCase(), phone, alt_phone, address, hashedPassword]
@@ -145,7 +161,7 @@ app.post('/api/login', async (req, res) => {
         }
 
         // Find user
-        const result = await pool.query('SELECT * FROM public.users WHERE email = $1', [email.toLowerCase()]);
+        const result = await getPool().query('SELECT * FROM public.users WHERE email = $1', [email.toLowerCase()]);
         const user = result.rows[0];
 
         if (!user) {
@@ -178,7 +194,7 @@ app.post('/api/forgot-password', async (req, res) => {
         const { email } = req.body;
         if (!email) return res.status(400).json({ error: 'Email is required.' });
 
-        const result = await pool.query('SELECT id, name FROM public.users WHERE email = $1', [email.toLowerCase()]);
+        const result = await getPool().query('SELECT id, name FROM public.users WHERE email = $1', [email.toLowerCase()]);
         const user = result.rows[0];
 
         if (!user) {
@@ -190,7 +206,7 @@ app.post('/api/forgot-password', async (req, res) => {
         const expiresAt = new Date(Date.now() + 10 * 60000); // 10 minutes
 
         // Save OTP
-        await pool.query(
+        await getPool().query(
             'UPDATE public.users SET reset_otp = $1, reset_otp_expires_at = $2 WHERE email = $3',
             [otp, expiresAt, email.toLowerCase()]
         );
@@ -217,7 +233,7 @@ app.post('/api/verify-otp', async (req, res) => {
     try {
         const { email, otp } = req.body;
 
-        const result = await pool.query('SELECT reset_otp, reset_otp_expires_at FROM public.users WHERE email = $1', [email.toLowerCase()]);
+        const result = await getPool().query('SELECT reset_otp, reset_otp_expires_at FROM public.users WHERE email = $1', [email.toLowerCase()]);
         const user = result.rows[0];
 
         if (!user || !user.reset_otp) {
@@ -261,7 +277,7 @@ app.post('/api/reset-password', async (req, res) => {
         const hashedPassword = await bcrypt.hash(newPassword, salt);
 
         // Update DB
-        const result = await pool.query(
+        const result = await getPool().query(
             'UPDATE public.users SET password = $1, reset_otp = NULL, reset_otp_expires_at = NULL WHERE email = $2 RETURNING name',
             [hashedPassword, email]
         );
@@ -294,7 +310,7 @@ app.post('/api/submit-application', async (req, res) => {
 
         // Insert into Supabase
         // Changed to worker_applications per user request
-        const result = await pool.query(
+        const result = await getPool().query(
             `INSERT INTO public.worker_applications 
              (app_id, status_level, from_name, dob, gender, mobile, whatsapp, email, pincode, state, district, address, service, experience, tools, availability, login_access) 
              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING id`,
@@ -326,7 +342,7 @@ app.post('/api/approve-application', async (req, res) => {
 
         // Update
         // Check for unapproved applications in worker_applications
-        const result = await pool.query(
+        const result = await getPool().query(
             `UPDATE public.worker_applications 
              SET status_level = 6, login_access = true, training_slot = $1 
              WHERE id = $2 RETURNING email, from_name`,
