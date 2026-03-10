@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -944,6 +944,7 @@
             right: 24px;
         }
     </style>
+    <script src="config.js"></script>
 </head>
 
 <body>
@@ -1430,7 +1431,7 @@
             let fDate = new Date(d).toLocaleDateString();
             const autoGenPass = generatePassword();
 
-            fetch('/api/send-email', {
+            fetch(`${API_BASE}/api/send-email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -1483,7 +1484,7 @@
 
             const { data: w } = await SB.from('worker_applications').select('*').eq('id', id).single();
             if (w) {
-                fetch('/api/send-email', {
+                fetch(`${API_BASE}/api/send-email`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({

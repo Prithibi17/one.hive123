@@ -1,4 +1,5 @@
 const config = require('./varsal.json');
+const cors = require('cors');
 const express = require('express');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
@@ -19,6 +20,24 @@ const EMAIL_USER = process.env.EMAIL_USER || config.email.user;
 const EMAIL_PASS = process.env.EMAIL_PASS || config.email.pass;
 
 const app = express();
+
+// ==========================================
+// CORS — allow Netlify frontend + local dev
+// ==========================================
+app.use(cors({
+    origin: [
+        'https://one-hive123.netlify.app',
+        /\.netlify\.app$/,
+        'http://localhost:3000',
+        'http://127.0.0.1:3000',
+        'http://localhost:5500',
+        'http://127.0.0.1:5500'
+    ],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true
+}));
+app.options('*', cors());
 
 // ==========================================
 // MIDDLEWARE
@@ -361,8 +380,14 @@ app.use((req, res) => {
 });
 
 // ==========================================
-// START SERVER
+// START SERVER (local dev only)
 // ==========================================
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+if (require.main === module) {
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+    });
+}
+
+// Export for Vercel serverless
+module.exports = app;
+

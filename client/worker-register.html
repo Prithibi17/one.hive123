@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -2126,7 +2126,7 @@
             showSuccess(appId);
 
             // Send Email via Backend (Alternative to EmailJS)
-            fetch('/api/send-email', {
+            fetch(`${API_BASE}/api/send-email`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
