@@ -1,3 +1,12 @@
+const cors = require('cors');
+const express = require('express');
+const { Pool } = require('pg');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+const path = require('path');
+const fs = require('fs');
+
 // ==========================================
 // CONFIGURATION
 // ==========================================
@@ -41,6 +50,11 @@ app.options('*', cors());
 // MIDDLEWARE
 // ==========================================
 app.use(express.json());
+
+// Root route for Vercel
+app.get('/', (req, res) => {
+    res.json({ message: 'OneHive API Server is running', docs: 'https://github.com/Prithibi17/one.hive123' });
+});
 
 // ==========================================
 // DATABASE CONNECTION (Lazy initialization)
@@ -392,10 +406,16 @@ app.post('/api/send-email', async (req, res) => {
 });
 
 // ==========================================
-// CATCH-ALL ROUTE
+// CATCH-ALL ROUTE (Safe for Serverless)
 // ==========================================
 app.use((req, res) => {
-    res.sendFile(path.join(__dirname, '..', 'client', 'index.html'));
+    // Only try to send file if it exists, otherwise 404 JSON
+    const indexPath = path.join(__dirname, '..', 'client', 'index.html');
+    if (fs.existsSync(indexPath)) {
+        res.sendFile(indexPath);
+    } else {
+        res.status(404).json({ error: 'API Endpoint not found. If you are looking for the frontend, go to Netlify.' });
+    }
 });
 
 // ==========================================
