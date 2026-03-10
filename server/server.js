@@ -1,4 +1,4 @@
-require('dotenv').config();
+const config = require('./varsal.json');
 const express = require('express');
 const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
@@ -8,15 +8,15 @@ const path = require('path');
 const fs = require('fs');
 
 // ==========================================
-// CONFIGURATION
+// CONFIGURATION (loaded from varsal.json)
 // ==========================================
-const PORT = process.env.PORT || 3000;
-const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/onehive';
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-jwt-key-change-in-production';
+const PORT = process.env.PORT || config.server.port;
+const DATABASE_URL = process.env.DATABASE_URL || config.database.url;
+const JWT_SECRET = process.env.JWT_SECRET || config.jwt.secret;
 
 // Email Settings
-const EMAIL_USER = process.env.EMAIL_USER || "onehiveindia@gmail.com";
-const EMAIL_PASS = process.env.EMAIL_PASS || "frkk nkwj bktn cqss";
+const EMAIL_USER = process.env.EMAIL_USER || config.email.user;
+const EMAIL_PASS = process.env.EMAIL_PASS || config.email.pass;
 
 const app = express();
 
@@ -32,7 +32,7 @@ app.use(express.static(path.join(__dirname, '..', 'client')));
 // ==========================================
 const pool = new Pool({
     connectionString: DATABASE_URL,
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    ssl: (process.env.NODE_ENV || config.server.nodeEnv) === 'production' ? { rejectUnauthorized: false } : false
 });
 
 // ==========================================
