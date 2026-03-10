@@ -1,0 +1,23 @@
+{
+  "server": {
+    "port": 3000,
+    "nodeEnv": "development",
+    "corsOrigin": "http://localhost:3000"
+  },
+  "database": {
+    "url": "REPLACE_WITH_DATABASE_URL_IN_ENV"
+  },
+  "jwt": {
+    "secret": "REPLACE_WITH_JWT_SECRET_IN_ENV",
+    "expiresIn": "24h"
+  },
+  "email": {
+    "user": "REPLACE_WITH_EMAIL_USER_IN_ENV",
+    "pass": "REPLACE_WITH_EMAIL_PASS_IN_ENV",
+    "service": "gmail"
+  },
+  "supabase": {
+    "url": "https://adtdjzohzcyrczpnsusc.supabase.co",
+    "anonKey": "sb_publishable_uxkUIgza1mQIPrxNxkrv6Q_4DO6xpRm"
+  }
+}

@@ -24,15 +24,18 @@ const app = express();
 // ==========================================
 // CORS — allow Netlify frontend + local dev
 // ==========================================
+const allowedOrigins = [
+    process.env.CORS_ORIGIN,
+    'https://one-hive123.netlify.app',
+    /\.netlify\.app$/,
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5500',
+    'http://127.0.0.1:5500'
+].filter(Boolean);
+
 app.use(cors({
-    origin: [
-        'https://one-hive123.netlify.app',
-        /\.netlify\.app$/,
-        'http://localhost:3000',
-        'http://127.0.0.1:3000',
-        'http://localhost:5500',
-        'http://127.0.0.1:5500'
-    ],
+    origin: allowedOrigins,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true
