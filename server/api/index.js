@@ -12,7 +12,7 @@ const fs = require('fs');
 // ==========================================
 let config = {};
 try {
-    config = require('./varsal.json');
+    config = require('../varsal.json');
 } catch (e) {
     console.warn('varsal.json not found, relying on environment variables');
 }
@@ -410,7 +410,7 @@ app.post('/api/send-email', async (req, res) => {
 // ==========================================
 app.use((req, res) => {
     // Only try to send file if it exists, otherwise 404 JSON
-    const indexPath = path.join(__dirname, '..', 'client', 'index.html');
+    const indexPath = path.join(__dirname, '..', '..', 'client', 'index.html');
     if (fs.existsSync(indexPath)) {
         res.sendFile(indexPath);
     } else {
